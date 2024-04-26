@@ -14,17 +14,15 @@ export default function Page() {
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // setLoading(true);
 
     if (!mobile) {
       router.push("/login/otp");
-      return
+      return;
     }
 
-    const formData = new FormData(e.currentTarget);
-    formData.set("mobile", mobile);
+    setLoading(true);
 
-    const { hasError, message } = await checkOTP(formData);
+    const { hasError, message } = await checkOTP(new FormData(e.currentTarget));
     // if (hasError) {
     //   setErrorMsg(message ?? "");
     // } else {
@@ -43,10 +41,12 @@ export default function Page() {
       <Stack>
         <Text>پیام برای {mobile} ارسال شد.</Text>
 
+        <input type="hidden" name="mobile" value={mobile!} />
+
         <PinInput
           type={"number"}
           length={5}
-          name="otp"
+          name="token"
           dir="ltr"
           ariaLabel="hih"
           styles={{ root: { justifyContent: "center" } }}

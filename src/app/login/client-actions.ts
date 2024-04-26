@@ -1,99 +1,55 @@
-import { paths, X_API_KEY } from "@/(shared)/constants";
-import { z } from "zod";
-import {
-  phoneNumberValidator,
-  phoneNumberNormalizer,
-} from "@persian-tools/persian-tools";
+import { ax } from "@shared/api/axios-instance";
+import { X_API_KEY, paths } from "@shared/constants";
 
-const mobileSchema = z
-  .custom<string>(
-    (val) => {
-      return typeof val === "string" && phoneNumberValidator(val);
-    },
-    { message: "شماره موبایل وارد شده معتبر نمی‌باشد." }
-  )
-  .transform((val) => {
-    return phoneNumberNormalizer(val, "0");
-  });
+type ActionReturnType = {
+  success: boolean;
+};
 
-const otpCodeSchema = z
-  .string()
-  .trim()
-  .regex(/[0-9]/, { message: "لطفا فقط عدد وارد نمایید" })
-  .length(5, { message: "کد باید 5 رقم داشته باشد" });
+export async function sendOTP(formData: FormData): Promise<ActionReturnType> {
+  const { mobile } = Object.fromEntries(formData);
 
-export async function sendOTP(
-  formData: FormData
-): Promise<{ hasError?: boolean; message?: string }> {
-  const mobile = formData.get("mobile") as string | undefined;
+  const res = await ax
+    .post(
+      `${paths.register.OTPSend}`,
+      {
+        mobile,
+      },
+      {
+        headers: {
+          "x-api-key": `${X_API_KEY}`,
+        },
+      }
+    )
+    .catch(console.error);
 
-  const {
-    success,
-    data: validatedMobile,
-    error,
-  } = mobileSchema.safeParse(mobile);
-
-  if (!success) {
+  if (res?.data?.message === "Verification code has been sent.") {
     return {
-      hasError: true,
-      message: error.errors[0].message,
+      success: true,
     };
   }
 
-  const response = await fetch(`${paths.register.OTPSend}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": `${X_API_KEY}`,
-    },
-    body: JSON.stringify({
-      mobile: validatedMobile,
-    }),
-  }).catch(console.error);
-
-  const resData = await response?.json().catch(console.error);
-
-  if (resData.message === "Verification code has been sent.") {
-    return {
-      hasError: false,
-    };
-  } else {
-    return {
-      hasError: true,
-      message: "مشکلی رخ داده است.",
-    };
-  }
+  return {
+    success: false,
+  };
 }
 
-export async function checkOTP(formData: FormData) {
-  const {
-    success,
-    data: validatedOtpCode,
-    error,
-  } = otpCodeSchema.safeParse(formData.get("otpCode"));
+export async function checkOTP(formData: FormData): Promise<ActionReturnType> {
+  const { mobile, token } = Object.fromEntries(formData);
 
-  if (!success) {
-    return {
-      success,
-      messageFa: error.errors[0].message,
-    };
-  }
-
-  const body = {
-    mobile: formData.get('mobile'),
-    token: validatedOtpCode,
-  };
-
-  const response = await fetch(`${paths.register.OTPCheck}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": `${X_API_KEY}`,
+  const res = await ax.post(
+    `${paths.register.OTPSend}`,
+    {
+      mobile,
+      token,
     },
-    body: JSON.stringify(body),
-  });
+    {
+      headers: {
+        "x-api-key": `${X_API_KEY}`,
+      },
+    }
+  );
 
-  const data = await response.json();
-
-  return data;
+  return {
+    success: true,
+  };
 }

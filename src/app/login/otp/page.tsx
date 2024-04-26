@@ -6,27 +6,37 @@ import { usePathname, useRouter } from "next/navigation";
 import queryString from "query-string";
 import { FormEvent, useState } from "react";
 import { sendOTP } from "../client-actions";
+import { useForm, zodResolver } from "@mantine/form";
+import { z } from "zod";
+import { mobileSchema } from "../schemas";
 
 export default function Page() {
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
+  const form = useForm({
+    initialValues: {
+      mobile: "",
+    },
+    validate: zodResolver(z.object({ mobile: mobileSchema })),
+  });
+
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    
+
     setLoading(true);
     const formData = new FormData(e.currentTarget);
-    const { hasError, message } = await sendOTP(formData);
-    if (hasError) {
-      setErrorMsg(message ?? "");
-    } else {
+    const { success } = await sendOTP(formData);
+
+    if (success) {
       router.push(
         `${pathname}?${queryString.stringify({
           mobile: formData.get("mobile"),
         })}`
       );
+    } else {
+      // setErrorMsg(message ?? "");
     }
 
     setLoading(false);
@@ -37,10 +47,9 @@ export default function Page() {
       <Stack>
         <TextInput
           type="tel"
-          name="mobile"
           label="شماره تلفن همراه"
           required
-          error={errorMsg}
+          {...form.getInputProps("mobile")}
         />
 
         <Button type="submit" disabled={loading}>
