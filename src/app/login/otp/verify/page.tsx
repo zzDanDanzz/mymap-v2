@@ -1,5 +1,6 @@
 "use client";
 
+import { checkOTP } from "@/login/client-actions";
 import { Anchor, Button, Divider, PinInput, Stack, Text } from "@mantine/core";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -22,9 +23,8 @@ export default function Page() {
 
     const formData = new FormData(e.currentTarget);
     formData.set("mobile", mobile);
-    console.log(Object.fromEntries(formData.entries()));
 
-    // const { hasError, message } = await sendOTP(formData);
+    const { hasError, message } = await checkOTP(formData);
     // if (hasError) {
     //   setErrorMsg(message ?? "");
     // } else {
