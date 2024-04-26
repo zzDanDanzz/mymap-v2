@@ -1,4 +1,7 @@
-export const { X_API_KEY, API_BASE } = process.env;
+export const {
+  NEXT_PUBLIC_API_BASE: API_BASE,
+  NEXT_PUBLIC_X_API_KEY: X_API_KEY,
+} = process.env;
 
 export const paths = {
   register: {

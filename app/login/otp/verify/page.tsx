@@ -1,38 +1,62 @@
-import { X_API_KEY, paths } from "@/(shared)/constants";
-import SubmitButton from "@/login/submit-button";
-import { Anchor, Group, Stack, TextInput, Title } from "@mantine/core";
+"use client";
+
+import { Anchor, Button, Divider, PinInput, Stack, Text } from "@mantine/core";
 import Link from "next/link";
-
-const loginWithOTP = async (formData: FormData) => {
-  "use server";
-
-  const mobile = formData.get("mobile");
-
-  const response = await fetch(`${paths.register.OTPSend}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": `${X_API_KEY}`,
-    },
-    body: JSON.stringify({
-      mobile,
-    }),
-  });
-
-  const data = await response.json();
-
-  return data;
-};
+import { useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, useState } from "react";
 
 export default function Page() {
+  const [loading, setLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const mobile = searchParams.get("mobile");
+
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    // setLoading(true);
+
+    if (!mobile) {
+      router.push("/login/otp");
+      return
+    }
+
+    const formData = new FormData(e.currentTarget);
+    formData.set("mobile", mobile);
+    console.log(Object.fromEntries(formData.entries()));
+
+    // const { hasError, message } = await sendOTP(formData);
+    // if (hasError) {
+    //   setErrorMsg(message ?? "");
+    // } else {
+    //   router.push(
+    //     `${pathname}?${queryString.stringify({
+    //       mobile: formData.get("mobile"),
+    //     })}`
+    //   );
+    // }
+
+    // setLoading(false);
+  }
+
   return (
-    <form action={loginWithOTP}>
+    <form onSubmit={onSubmit}>
       <Stack>
-        <Group>
-          <Title>ورود</Title>
-        </Group>
-        <TextInput name="mobile" label="شماره تلفن همراه" required />
-        <SubmitButton>دریافت کد</SubmitButton>
+        <Text>پیام برای {mobile} ارسال شد.</Text>
+
+        <PinInput
+          type={"number"}
+          length={5}
+          name="otp"
+          dir="ltr"
+          ariaLabel="hih"
+          styles={{ root: { justifyContent: "center" } }}
+        />
+
+        <Button type="submit" disabled={loading}>
+          ورود
+        </Button>
+
+        <Divider />
         <Anchor component={Link} href="/login">
           ورود با نام کاربری و رمز عبور
         </Anchor>
