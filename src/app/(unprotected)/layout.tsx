@@ -2,14 +2,18 @@
 
 import { getSessionToken } from "@shared/utils/local-storage";
 import { useRouter } from "next/navigation";
-import { PropsWithChildren, useEffect } from "react";
+import { useEffect } from "react";
 
-export default function ProtectedRoutesLayout({ children }: PropsWithChildren) {
+export default function UnprotectedRoutesLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const router = useRouter();
 
   useEffect(() => {
-    if (!getSessionToken()) {
-      router.push("/login");
+    if (getSessionToken()) {
+      router.push("/data");
     }
   }, [router]);
 

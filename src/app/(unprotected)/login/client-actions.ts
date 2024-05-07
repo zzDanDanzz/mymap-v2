@@ -1,5 +1,6 @@
 import { ax } from "@shared/api/axios-instance";
-import { X_API_KEY, paths } from "@shared/constants";
+import urls from "@shared/api/urls";
+import { X_API_KEY } from "@shared/config";
 
 type ActionReturnType = {
   success: boolean;
@@ -10,7 +11,7 @@ export async function sendOTP(formData: FormData): Promise<ActionReturnType> {
 
   const res = await ax
     .post(
-      `${paths.register.OTPSend}`,
+      `${urls.register.OTPSend}`,
       {
         mobile,
       },
@@ -21,6 +22,7 @@ export async function sendOTP(formData: FormData): Promise<ActionReturnType> {
       }
     )
     .catch(console.error);
+  console.log("🚀 ~ sendOTP ~ res:", res)
 
   if (res?.data?.message === "Verification code has been sent.") {
     return {
@@ -33,11 +35,19 @@ export async function sendOTP(formData: FormData): Promise<ActionReturnType> {
   };
 }
 
+interface CheckOTPResponse {
+  token_type: string;
+  expires_in: number;
+  access_token: string;
+  refresh_token: string;
+  role: string;
+}
+
 export async function checkOTP(formData: FormData): Promise<ActionReturnType> {
   const { mobile, token } = Object.fromEntries(formData);
 
-  const res = await ax.post(
-    `${paths.register.OTPSend}`,
+  const res = await ax.post<CheckOTPResponse>(
+    `${urls.register.OTPCheck}`,
     {
       mobile,
       token,
@@ -48,6 +58,11 @@ export async function checkOTP(formData: FormData): Promise<ActionReturnType> {
       },
     }
   );
+  
+  
+
+  console.log({ res });
+
 
   return {
     success: true,

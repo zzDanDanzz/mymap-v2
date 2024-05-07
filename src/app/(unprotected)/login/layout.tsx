@@ -1,19 +1,7 @@
-"use client";
-
 import { Center, Paper, Stack, Title } from "@mantine/core";
-import useToken from "@shared/hooks/use-token";
-import { useRouter } from "next/router";
-import { PropsWithChildren, useEffect } from "react";
+import { PropsWithChildren } from "react";
 
 export default function LoginLayout({ children }: PropsWithChildren) {
-  const [token] = useToken();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (token) {
-      router.push("/data");
-    }
-  }, [router, token]);
 
   return (
     <Center>

@@ -1,11 +1,9 @@
 import {
   Anchor,
   Button,
-  Group,
   PasswordInput,
   Stack,
-  TextInput,
-  Title,
+  TextInput
 } from "@mantine/core";
 import Link from "next/link";
 

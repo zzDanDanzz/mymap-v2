@@ -20,9 +20,7 @@ export default function Page() {
       return;
     }
 
-    setLoading(true);
-
-    const { hasError, message } = await checkOTP(new FormData(e.currentTarget));
+    await checkOTP(new FormData(e.currentTarget));
     // if (hasError) {
     //   setErrorMsg(message ?? "");
     // } else {

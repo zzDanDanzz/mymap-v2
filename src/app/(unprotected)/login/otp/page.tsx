@@ -1,13 +1,14 @@
 "use client";
 
 import { Anchor, Button, Divider, Stack, TextInput } from "@mantine/core";
+import { useForm, zodResolver } from "@mantine/form";
+import notify from "@shared/utils/toasts";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import queryString from "query-string";
 import { FormEvent, useState } from "react";
-import { sendOTP } from "../client-actions";
-import { useForm, zodResolver } from "@mantine/form";
 import { z } from "zod";
+import { sendOTP } from "../client-actions";
 import { mobileSchema } from "../schemas";
 
 export default function Page() {
@@ -36,7 +37,7 @@ export default function Page() {
         })}`
       );
     } else {
-      // setErrorMsg(message ?? "");
+      notify.error("خطا در ارسال کد");
     }
 
     setLoading(false);
@@ -48,6 +49,7 @@ export default function Page() {
         <TextInput
           type="tel"
           label="شماره تلفن همراه"
+          name="mobile"
           required
           {...form.getInputProps("mobile")}
         />
