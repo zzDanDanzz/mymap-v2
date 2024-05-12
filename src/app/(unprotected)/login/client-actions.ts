@@ -2,11 +2,11 @@ import { ax } from "@shared/api/axios-instance";
 import urls from "@shared/api/urls";
 import { X_API_KEY } from "@shared/config";
 
-type ActionReturnType = {
+interface SendOtpReturn {
   success: boolean;
 };
 
-export async function sendOTP(formData: FormData): Promise<ActionReturnType> {
+export async function sendOTP(formData: FormData): Promise<SendOtpReturn> {
   const { mobile } = Object.fromEntries(formData);
 
   const res = await ax
@@ -35,18 +35,31 @@ export async function sendOTP(formData: FormData): Promise<ActionReturnType> {
   };
 }
 
-interface CheckOTPResponse {
-  token_type: string;
-  expires_in: number;
-  access_token: string;
-  refresh_token: string;
-  role: string;
+interface CheckOtpResponse {
+  token_type?: string;
+  expires_in?: number;
+  access_token?: string;
+  refresh_token?: string;
+  role?: string;
 }
 
-export async function checkOTP(formData: FormData): Promise<ActionReturnType> {
+type CheckOtpErrorReturn = {
+  success: false
+};
+
+
+type CheckOtpSuccessReturn = {
+  success: true,
+  sessionToken: string;
+  refreshToken: string;
+};
+
+type CheckOtpReturn = CheckOtpErrorReturn | CheckOtpSuccessReturn
+
+export async function checkOTP(formData: FormData): Promise<CheckOtpReturn> {
   const { mobile, token } = Object.fromEntries(formData);
 
-  const res = await ax.post<CheckOTPResponse>(
+  const res = await ax.post<CheckOtpResponse>(
     `${urls.register.OTPCheck}`,
     {
       mobile,
@@ -58,13 +71,17 @@ export async function checkOTP(formData: FormData): Promise<ActionReturnType> {
       },
     }
   );
-  
-  
 
-  console.log({ res });
 
+  if (res.data.access_token && res.data.refresh_token) {
+    return {
+      success: true,
+      sessionToken: res.data.access_token,
+      refreshToken: res.data.refresh_token,
+    };
+  }
 
   return {
-    success: true,
+    success: false,
   };
 }

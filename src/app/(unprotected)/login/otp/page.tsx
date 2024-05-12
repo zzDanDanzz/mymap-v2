@@ -14,7 +14,6 @@ import { mobileSchema } from "../schemas";
 export default function Page() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const pathname = usePathname();
 
   const form = useForm({
     initialValues: {
@@ -32,7 +31,7 @@ export default function Page() {
 
     if (success) {
       router.push(
-        `${pathname}?${queryString.stringify({
+        `/otp/verify?${queryString.stringify({
           mobile: formData.get("mobile"),
         })}`
       );

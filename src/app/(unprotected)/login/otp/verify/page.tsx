@@ -1,7 +1,17 @@
 "use client";
 
 import { checkOTP } from "@/login/client-actions";
-import { Anchor, Button, Divider, PinInput, Stack, Text } from "@mantine/core";
+import {
+  Anchor,
+  Button,
+  Divider,
+  Group,
+  PinInput,
+  Stack,
+  Text,
+} from "@mantine/core";
+import { setRefreshToken, setSessionToken } from "@shared/utils/local-storage";
+import notify from "@shared/utils/toasts";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
@@ -14,24 +24,25 @@ export default function Page() {
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setLoading(true);
 
     if (!mobile) {
       router.push("/login/otp");
       return;
     }
 
-    await checkOTP(new FormData(e.currentTarget));
-    // if (hasError) {
-    //   setErrorMsg(message ?? "");
-    // } else {
-    //   router.push(
-    //     `${pathname}?${queryString.stringify({
-    //       mobile: formData.get("mobile"),
-    //     })}`
-    //   );
-    // }
+    const res = await checkOTP(new FormData(e.currentTarget));
 
-    // setLoading(false);
+    if (res.success) {
+      const { refreshToken, sessionToken } = res;
+      setSessionToken(sessionToken);
+      setRefreshToken(refreshToken);
+      router.push("/data");
+    } else {
+      notify.error("خطایی رخ داده است.");
+    }
+
+    setLoading(false);
   }
 
   return (
