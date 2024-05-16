@@ -23,7 +23,6 @@ const userProfileFetcher = async () => {
             'x-api-key': X_API_KEY
         }
     })
-    if (!res.data.id) throw new Error("userProfileFetcher: no id")
     return res.data
 }
 

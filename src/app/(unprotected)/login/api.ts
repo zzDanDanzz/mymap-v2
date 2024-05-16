@@ -121,7 +121,7 @@ export async function passwordLogin({ username, password, captchaSolution, captc
 }
 
 export async function getCaptcha() {
-  const res = await ax.get<{ id: string, png: string }>(
+  const res = await ax.post<{ id: string, png: string }>(
     `${urls.register.captcha}`,
     {
       headers: {

@@ -16,7 +16,7 @@ import { X_API_KEY } from "@shared/config";
 export default function ProtectedRoutesLayout({ children }: PropsWithChildren) {
   const router = useRouter();
   const [isCreatingMyApp, setIsCreatingMyApp] = useState(false);
-  const { userIsLoading, userData, userError } = useUserProfile();
+  const { userIsLoading, userData, userError, userIsValidating } = useUserProfile();
 
   const signOut = useCallback(() => {
     router.push("/login");
@@ -39,14 +39,21 @@ export default function ProtectedRoutesLayout({ children }: PropsWithChildren) {
   }, []);
 
   const handleRouteProtection = useCallback(async () => {
-    if (!getSessionToken()) {
+    const sessionToken = getSessionToken();
+
+    if (!sessionToken) {
       signOut();
       return;
     }
 
-    if (userIsLoading) return;
+    if (userIsValidating) return;
 
     if (userError) {
+      signOut();
+      return;
+    }
+
+    if (userData && !userData.id) {
       signOut();
       return;
     }
@@ -54,7 +61,7 @@ export default function ProtectedRoutesLayout({ children }: PropsWithChildren) {
     if (userData && !userData.my_app?.access_token) {
       handleUserHasNoMyApp(userData.id);
     }
-  }, [handleUserHasNoMyApp, signOut, userData, userError, userIsLoading]);
+  }, [handleUserHasNoMyApp, signOut, userData, userError, userIsValidating]);
 
   useEffect(() => {
     handleRouteProtection();

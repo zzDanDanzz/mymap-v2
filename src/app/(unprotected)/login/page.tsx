@@ -14,8 +14,8 @@ import { captchaFormSchema, passwordLoginFormSchema } from "./schemas";
 
 export default function Page() {
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const [captcha, setCaptcha] = useState<Captcha>();
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof passwordLoginFormSchema>>({
     initialValues: {
@@ -84,10 +84,12 @@ export default function Page() {
           <CaptchaFields
             captchaForm={captchaForm}
             captcha={captcha}
-            setCaptcha={setCaptcha}
+            refetchCaptcha={handleRequiresCaptcha}
           />
         )}
-        <Button type="submit" loading={loading}>ورود</Button>
+        <Button type="submit" loading={loading}>
+          ورود
+        </Button>
         <Anchor component={Link} href="/login/otp">
           ورود با رمز یک‌بار مصرف
         </Anchor>
