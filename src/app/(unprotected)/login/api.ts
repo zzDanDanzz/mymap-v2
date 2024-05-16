@@ -97,6 +97,50 @@ export async function passwordLogin({ username, password, captchaSolution, captc
     }
   );
 
+  if (res.data.access_token && res.data.refresh_token) {
+    return {
+      success: true as const,
+      sessionToken: res.data.access_token,
+      refreshToken: res.data.refresh_token,
+    };
+  }
+
+  if (res.status === 400) {
+    return {
+      success: false as const,
+      requiresCaptcha: true as const,
+      message: "کد کپچا را وارد کنید.",
+    };
+  }
+
+  return {
+    success: false as const,
+    message: "نام کاربری یا رمز عبور اشتباه است.",
+  }
 
 }
 
+export async function getCaptcha() {
+  const res = await ax.get<{ id: string, png: string }>(
+    `${urls.register.captcha}`,
+    {
+      headers: {
+        "x-api-key": `${X_API_KEY}`,
+      },
+    }
+  );
+
+  if (res.data.id && res.data.png) {
+    return {
+      success: true as const,
+      id: res.data.id,
+      imgUrl: res.data.png,
+    };
+  }
+
+  return {
+    success: false as const,
+    message: "هنگام دریافت کپچا خطایی رخ داده است.",
+  };
+
+}

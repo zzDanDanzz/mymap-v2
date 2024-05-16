@@ -14,6 +14,7 @@
     "@mantine/hooks": "^7.8.1",
     "@mantine/notifications": "^7.8.1",
     "@persian-tools/persian-tools": "^3.5.2",
+    "@tabler/icons-react": "^3.4.0",
     "axios": "^1.6.8",
     "mantine-form-zod-resolver": "^1.1.0",
     "next": "14.2.3",

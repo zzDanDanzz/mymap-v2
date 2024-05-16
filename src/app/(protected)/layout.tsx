@@ -26,13 +26,16 @@ export default function ProtectedRoutesLayout({ children }: PropsWithChildren) {
   }, [router]);
 
   const handleUserHasNoMyApp = useCallback(async (userId: string) => {
+    setIsCreatingMyApp(true);
     const res = await createApp(userId);
 
     if (res.success) {
       setUserXApiKey(res.appToken);
     } else {
+      // TODO: this key should not be used. must change when backend is ready
       setUserXApiKey(X_API_KEY);
     }
+    setIsCreatingMyApp(false);
   }, []);
 
   const handleRouteProtection = useCallback(async () => {
@@ -48,12 +51,8 @@ export default function ProtectedRoutesLayout({ children }: PropsWithChildren) {
       return;
     }
 
-    if (!userData) return;
-
-    if (!userData.my_app?.access_token) {
-      setIsCreatingMyApp(true);
+    if (userData && !userData.my_app?.access_token) {
       handleUserHasNoMyApp(userData.id);
-      setIsCreatingMyApp(false);
     }
   }, [handleUserHasNoMyApp, signOut, userData, userError, userIsLoading]);
 
