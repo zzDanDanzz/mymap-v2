@@ -5,6 +5,7 @@ const urls = {
         OTPSend: `register/otp/send`,
         OTPCheck: `register/otp/check`,
         apps: 'register/apps',
+        login: 'register/tokens/user',
     },
 };
 

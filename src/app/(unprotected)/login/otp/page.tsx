@@ -7,34 +7,32 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import queryString from "query-string";
 import { FormEvent, useState } from "react";
+import { sendOTP } from "../api";
+import { sendOtpFormSchema } from "../schemas";
 import { z } from "zod";
-import { sendOTP } from "../client-actions";
-import { mobileSchema } from "../schemas";
 
 export default function Page() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
 
-  const form = useForm({
+  const form = useForm<z.infer<typeof sendOtpFormSchema>>({
     initialValues: {
       mobile: "",
     },
-    validate: zodResolver(z.object({ mobile: mobileSchema })),
+    validate: zodResolver(sendOtpFormSchema),
   });
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const { hasErrors } = form.validate();
+    if (hasErrors) return;
 
     setLoading(true);
-    const formData = new FormData(e.currentTarget);
-    const { success } = await sendOTP(formData);
+    const { success } = await sendOTP(form.values);
 
     if (success) {
-      router.push(
-        `/otp/verify?${queryString.stringify({
-          mobile: formData.get("mobile"),
-        })}`
-      );
+      router.push(`${pathname}/verify?${queryString.stringify(form.values)}`);
     } else {
       notify.error("خطا در ارسال کد");
     }
@@ -48,8 +46,6 @@ export default function Page() {
         <TextInput
           type="tel"
           label="شماره تلفن همراه"
-          name="mobile"
-          required
           {...form.getInputProps("mobile")}
         />
 

@@ -1,40 +1,59 @@
 "use client";
 
-import { checkOTP } from "@/login/client-actions";
+import { checkOTP } from "@/login/api";
+import { checkOtpFormSchema } from "@/login/schemas";
 import {
   Anchor,
   Button,
   Divider,
-  Group,
   PinInput,
   Stack,
-  Text,
+  Text
 } from "@mantine/core";
+import { useForm } from "@mantine/form";
 import { setRefreshToken, setSessionToken } from "@shared/utils/local-storage";
 import notify from "@shared/utils/toasts";
+import { zodResolver } from "mantine-form-zod-resolver";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { z } from "zod";
 
 export default function Page() {
+  const OTP_CODE_LENGTH = 5;
+
   const [loading, setLoading] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
-  const mobile = searchParams.get("mobile");
+  const mobile = searchParams.get("mobile")!;
+
+  const form = useForm<z.infer<typeof checkOtpFormSchema>>({
+    initialValues: {
+      token: "",
+      mobile,
+    },
+    validate: zodResolver(checkOtpFormSchema),
+  });
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setLoading(true);
 
-    if (!mobile) {
+    if (!form.values.mobile) {
       router.push("/login/otp");
       return;
     }
 
-    const res = await checkOTP(new FormData(e.currentTarget));
+    const { hasErrors } = form.validate();
+    if (hasErrors) return;
 
-    if (res.success) {
-      const { refreshToken, sessionToken } = res;
+    setLoading(true);
+
+    const { success, refreshToken, sessionToken } = await checkOTP({
+      mobile,
+      token: form.values.token,
+    });
+
+    if (success) {
       setSessionToken(sessionToken);
       setRefreshToken(refreshToken);
       router.push("/data");
@@ -50,15 +69,12 @@ export default function Page() {
       <Stack>
         <Text>پیام برای {mobile} ارسال شد.</Text>
 
-        <input type="hidden" name="mobile" value={mobile!} />
-
         <PinInput
           type={"number"}
-          length={5}
-          name="token"
+          length={OTP_CODE_LENGTH}
           dir="ltr"
-          ariaLabel="hih"
           styles={{ root: { justifyContent: "center" } }}
+          {...form.getInputProps("token")}
         />
 
         <Button type="submit" disabled={loading}>

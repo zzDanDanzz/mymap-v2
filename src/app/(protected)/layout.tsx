@@ -10,7 +10,7 @@ import {
 } from "@shared/utils/local-storage";
 import { useRouter } from "next/navigation";
 import { PropsWithChildren, useCallback, useEffect, useState } from "react";
-import { createApp } from "./client-actions";
+import { createApp } from "./api";
 import { X_API_KEY } from "@shared/config";
 
 export default function ProtectedRoutesLayout({ children }: PropsWithChildren) {
@@ -61,7 +61,7 @@ export default function ProtectedRoutesLayout({ children }: PropsWithChildren) {
     handleRouteProtection();
   }, [handleRouteProtection]);
 
-  if (isCreatingMyApp) {
+  if (userIsLoading || userError || isCreatingMyApp) {
     return <>Loading.....</>;
   }
 
