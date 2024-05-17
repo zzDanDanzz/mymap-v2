@@ -1,10 +1,15 @@
 "use client";
 
-import { X_API_KEY } from "@shared/config";
+import useLogout from "@shared/hooks/auth/use-logout";
 import { useUserProfile } from "@shared/hooks/swr/use-user-profile";
-import useLogout from "@shared/hooks/use-logout";
 import { getSessionToken, setUserXApiKey } from "@shared/utils/local-storage";
-import { PropsWithChildren, useCallback, useEffect, useState } from "react";
+import {
+  PropsWithChildren,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { createApp } from "./api";
 
 export default function ProtectedRoutesLayout({ children }: PropsWithChildren) {
@@ -13,15 +18,18 @@ export default function ProtectedRoutesLayout({ children }: PropsWithChildren) {
   const { userIsLoading, userData, userError, userIsValidating } =
     useUserProfile();
 
+  const hasAttemptedMyAppCreationRef = useRef(false);
+
   const handleUserHasNoMyApp = useCallback(async (userId: string) => {
+    if (hasAttemptedMyAppCreationRef.current) {
+      return;
+    }
     setIsCreatingMyApp(true);
+    hasAttemptedMyAppCreationRef.current = true;
     const res = await createApp(userId);
 
     if (res.success) {
       setUserXApiKey(res.appToken);
-    } else {
-      // TODO: this key should not be used. must change when backend is ready
-      setUserXApiKey(X_API_KEY);
     }
     setIsCreatingMyApp(false);
   }, []);

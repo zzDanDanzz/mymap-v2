@@ -1,11 +1,10 @@
 "use client";
 import { Anchor, Button, PasswordInput, Stack, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { setRefreshToken, setSessionToken } from "@shared/utils/local-storage";
+import useLogin from "@shared/hooks/auth/use-login";
 import notify from "@shared/utils/toasts";
 import { zodResolver } from "mantine-form-zod-resolver";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { z } from "zod";
 import CaptchaFields from "./(components)/captcha-form";
@@ -13,9 +12,9 @@ import { getCaptcha, passwordLogin } from "./api";
 import { captchaFormSchema, passwordLoginFormSchema } from "./schemas";
 
 export default function Page() {
+  const { login } = useLogin();
   const [loading, setLoading] = useState(false);
   const [captcha, setCaptcha] = useState<Captcha>();
-  const router = useRouter();
 
   const form = useForm<z.infer<typeof passwordLoginFormSchema>>({
     initialValues: {
@@ -62,9 +61,7 @@ export default function Page() {
       });
 
     if (success) {
-      setSessionToken(sessionToken);
-      setRefreshToken(refreshToken);
-      router.push("/data");
+      login({ refreshToken, sessionToken });
     } else {
       if (requiresCaptcha) {
         await handleRequiresCaptcha();

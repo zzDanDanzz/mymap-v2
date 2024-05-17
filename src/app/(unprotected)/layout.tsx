@@ -1,7 +1,7 @@
 "use client";
 
-import { getSessionToken } from "@shared/utils/local-storage";
-import { useRouter } from "next/navigation";
+import useLogin from "@shared/hooks/auth/use-login";
+import { getRefreshToken, getSessionToken } from "@shared/utils/local-storage";
 import { useEffect } from "react";
 
 export default function UnprotectedRoutesLayout({
@@ -9,13 +9,15 @@ export default function UnprotectedRoutesLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const router = useRouter();
+  const { login } = useLogin();
 
   useEffect(() => {
-    if (getSessionToken()) {
-      router.push("/data");
+    const sessionToken = getSessionToken();
+    const refreshToken = getRefreshToken();
+    if (sessionToken && refreshToken) {
+      login({ sessionToken, refreshToken });
     }
-  }, [router]);
+  }, [login]);
 
   return <>{children}</>;
 }

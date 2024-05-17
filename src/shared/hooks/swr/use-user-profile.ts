@@ -2,31 +2,41 @@ import { ax } from "@shared/api/axios-instance";
 import urls from "@shared/api/urls";
 import { X_API_KEY } from "@shared/config";
 import { getSessionToken } from "@shared/utils/local-storage";
-import useSWR from "swr";
+import useSWRImmutable from "swr/immutable";
 interface MyApp {
-    access_token: Accesstoken;
+  access_token: Accesstoken;
 }
 
 interface Accesstoken {
-    token: string;
+  token: string;
 }
 
 interface MySelf {
-    id: string
-    my_app?: MyApp;
+  id: string;
+  my_app?: MyApp;
 }
 
-const userProfileFetcher = async () => {
-    const res = await ax.get<MySelf>(urls.register.mySelf, {
-        headers: {
-            token: getSessionToken(),
-            'x-api-key': X_API_KEY
-        }
-    })
-    return res.data
-}
+const fetcher = async (url: string) => {
+  const res = await ax.get<MySelf>(url, {
+    headers: {
+      token: getSessionToken(),
+      "x-api-key": X_API_KEY,
+    },
+  });
+  return res.data;
+};
 
 export function useUserProfile() {
-    const { data: userData, error: userError, isLoading: userIsLoading, mutate: userMutate, isValidating: userIsValidating } = useSWR(urls.register.mySelf, userProfileFetcher)
-    return { userData, userError, userIsLoading, userMutate, userIsValidating }
+  const { data, error, isLoading, mutate, isValidating } = useSWRImmutable(
+    urls.register.mySelf,
+    fetcher
+  );
+
+  return {
+    userData: data,
+    userError: error,
+    userIsLoading: isLoading,
+    userIsValidating: isValidating,
+    userMutate: mutate,
+  };
 }

@@ -2,16 +2,9 @@
 
 import { checkOTP } from "@/login/api";
 import { checkOtpFormSchema } from "@/login/schemas";
-import {
-  Anchor,
-  Button,
-  Divider,
-  PinInput,
-  Stack,
-  Text
-} from "@mantine/core";
+import { Anchor, Button, Divider, PinInput, Stack, Text } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { setRefreshToken, setSessionToken } from "@shared/utils/local-storage";
+import useLogin from "@shared/hooks/auth/use-login";
 import notify from "@shared/utils/toasts";
 import { zodResolver } from "mantine-form-zod-resolver";
 import Link from "next/link";
@@ -22,6 +15,7 @@ import { z } from "zod";
 export default function Page() {
   const OTP_CODE_LENGTH = 5;
 
+  const { login } = useLogin();
   const [loading, setLoading] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -54,9 +48,7 @@ export default function Page() {
     });
 
     if (success) {
-      setSessionToken(sessionToken);
-      setRefreshToken(refreshToken);
-      router.push("/data");
+      login({ sessionToken, refreshToken });
     } else {
       notify.error("خطایی رخ داده است.");
     }
