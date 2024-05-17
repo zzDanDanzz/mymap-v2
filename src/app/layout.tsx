@@ -1,5 +1,6 @@
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
+import "@shared/globals.css";
 
 import { ColorSchemeScript, MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
@@ -22,7 +23,11 @@ export default function RootLayout({
         <ColorSchemeScript />
       </head>
       <body>
-        <MantineProvider>
+        <MantineProvider
+          theme={{
+            fontFamily: 'IRANSansWeb',
+          }}
+        >
           <Notifications />
           {children}
         </MantineProvider>
