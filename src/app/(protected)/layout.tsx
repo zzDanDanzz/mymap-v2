@@ -1,29 +1,17 @@
 "use client";
 
+import { X_API_KEY } from "@shared/config";
 import { useUserProfile } from "@shared/hooks/swr/use-user-profile";
-import {
-  getSessionToken,
-  removeRefreshToken,
-  removeSessionToken,
-  removeUserXApiKey,
-  setUserXApiKey,
-} from "@shared/utils/local-storage";
-import { useRouter } from "next/navigation";
+import useLogout from "@shared/hooks/use-logout";
+import { getSessionToken, setUserXApiKey } from "@shared/utils/local-storage";
 import { PropsWithChildren, useCallback, useEffect, useState } from "react";
 import { createApp } from "./api";
-import { X_API_KEY } from "@shared/config";
 
 export default function ProtectedRoutesLayout({ children }: PropsWithChildren) {
-  const router = useRouter();
+  const { logOut } = useLogout();
   const [isCreatingMyApp, setIsCreatingMyApp] = useState(false);
-  const { userIsLoading, userData, userError, userIsValidating } = useUserProfile();
-
-  const signOut = useCallback(() => {
-    router.push("/login");
-    removeSessionToken();
-    removeRefreshToken();
-    removeUserXApiKey();
-  }, [router]);
+  const { userIsLoading, userData, userError, userIsValidating } =
+    useUserProfile();
 
   const handleUserHasNoMyApp = useCallback(async (userId: string) => {
     setIsCreatingMyApp(true);
@@ -42,26 +30,28 @@ export default function ProtectedRoutesLayout({ children }: PropsWithChildren) {
     const sessionToken = getSessionToken();
 
     if (!sessionToken) {
-      signOut();
+      logOut();
       return;
     }
 
-    if (userIsValidating) return;
+    if (userIsValidating) {
+      return;
+    }
 
     if (userError) {
-      signOut();
+      logOut();
       return;
     }
 
     if (userData && !userData.id) {
-      signOut();
+      logOut();
       return;
     }
 
     if (userData && !userData.my_app?.access_token) {
       handleUserHasNoMyApp(userData.id);
     }
-  }, [handleUserHasNoMyApp, signOut, userData, userError, userIsValidating]);
+  }, [handleUserHasNoMyApp, logOut, userData, userError, userIsValidating]);
 
   useEffect(() => {
     handleRouteProtection();
