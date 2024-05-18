@@ -4,7 +4,7 @@ import useLogout from "@shared/hooks/auth/use-logout";
 function NavigationBar() {
   const { logOut } = useLogout();
   return (
-    <Paper p={"md"} withBorder radius={0}>
+    <Paper p={"md"} withBorder radius={0} mb={"md"}>
       <Button onClick={logOut}>خروج</Button>
     </Paper>
   );

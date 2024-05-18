@@ -1,6 +1,7 @@
 "use client";
 import { Group, Paper, SimpleGrid, Stack, Text } from "@mantine/core";
 import useAllDatasources from "@shared/hooks/swr/use-all-datasources";
+import Link from "next/link";
 
 const propertiesToDisplay = [
   {
@@ -19,7 +20,14 @@ const propertiesToDisplay = [
 
 function DatasourceCard({ datasource }: { datasource: Datasource }) {
   return (
-    <Paper p={"md"} withBorder shadow="sm">
+    <Paper
+      p={"md"}
+      withBorder
+      shadow="sm"
+      component={Link}
+      href={`/data/${datasource.id}`}
+      c={'black'}
+    >
       <Text fw={"bold"}>{datasource.name}</Text>
       <Text truncate c={"gray"}>
         {datasource.description ?? "توضیحات"}

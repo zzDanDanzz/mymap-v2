@@ -12,10 +12,12 @@ import {
 } from "react";
 import { createApp } from "../api";
 
-export default function RouteProtectionWrapper({ children }: PropsWithChildren) {
+export default function RouteProtectionWrapper({
+  children,
+}: PropsWithChildren) {
   const { logOut } = useLogout();
   const [isCreatingMyApp, setIsCreatingMyApp] = useState(false);
-  const { userIsLoading, userData, userError, userIsValidating } =
+  const { userIsLoading, userData, userIsValidating } =
     useUserProfile();
 
   const hasAttemptedMyAppCreationRef = useRef(false);
@@ -46,11 +48,6 @@ export default function RouteProtectionWrapper({ children }: PropsWithChildren) 
       return;
     }
 
-    if (userError) {
-      logOut();
-      return;
-    }
-
     if (userData && !userData.id) {
       logOut();
       return;
@@ -59,16 +56,15 @@ export default function RouteProtectionWrapper({ children }: PropsWithChildren) 
     if (userData && !userData.my_app?.access_token) {
       handleUserHasNoMyApp(userData.id);
     }
-  }, [handleUserHasNoMyApp, logOut, userData, userError, userIsValidating]);
+  }, [handleUserHasNoMyApp, logOut, userData, userIsValidating]);
 
   useEffect(() => {
     handleRouteProtection();
   }, [handleRouteProtection]);
 
-  if (userIsLoading || userError || isCreatingMyApp) {
+  if (userIsLoading || !userData || isCreatingMyApp) {
     return <>Loading.....</>;
   }
 
   return <>{children}</>;
 }
-
