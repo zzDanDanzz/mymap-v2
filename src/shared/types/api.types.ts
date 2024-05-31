@@ -1,4 +1,4 @@
-interface ODataResponse<T> {
+export interface ODataResponse<T> {
     'odata.count': number,
     value: T[]
 }

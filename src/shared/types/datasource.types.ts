@@ -1,4 +1,4 @@
-interface Datasource {
+export interface Datasource {
   user_id?: string;
   tablename?: string;
   database_id?: number;
@@ -28,4 +28,16 @@ interface Settings {
 interface PrimaryGeom {
   name?: string;
   data_type?: string;
+}
+
+
+export interface DatasourceColumn {
+  name: string;
+  data_type: string;
+  is_nullable: boolean;
+  description: null;
+}
+
+export interface DatasourceRow {
+  [key: string]: any;
 }

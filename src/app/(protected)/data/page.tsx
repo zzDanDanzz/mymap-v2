@@ -1,6 +1,6 @@
 "use client";
 import { Group, Paper, SimpleGrid, Stack, Text } from "@mantine/core";
-import useAllDatasources from "@shared/hooks/swr/use-all-datasources";
+import useAllDatasources from "@shared/hooks/swr/datasources/use-all-datasources";
 import Link from "next/link";
 
 const propertiesToDisplay = [

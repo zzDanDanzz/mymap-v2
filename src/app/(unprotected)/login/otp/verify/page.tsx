@@ -1,7 +1,7 @@
 "use client";
 
-import { checkOTP } from "@/login/api";
-import { checkOtpFormSchema } from "@/login/schemas";
+import { checkOTP } from "@/login/(utils)/api";
+import { checkOtpFormSchema } from "@/login/(utils)/schemas";
 import { Anchor, Button, Divider, PinInput, Stack, Text } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import useLogin from "@shared/hooks/auth/use-login";

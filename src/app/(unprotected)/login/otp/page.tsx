@@ -7,8 +7,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import queryString from "query-string";
 import { FormEvent, useState } from "react";
-import { sendOTP } from "../api";
-import { sendOtpFormSchema } from "../schemas";
+import { sendOTP } from "../(utils)/api";
+import { sendOtpFormSchema } from "../(utils)/schemas";
 import { z } from "zod";
 
 export default function Page() {

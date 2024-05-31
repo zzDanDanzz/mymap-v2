@@ -10,6 +10,7 @@ const urls = {
     captcha: `${API_BASE}/captcha/new/easy/5/600`,
   },
   datasources: `${MY_API_BASE}/mym/datasources`,
+  editorTables: `${MY_API_BASE}/editor/tables`,
 };
 
 export default urls;

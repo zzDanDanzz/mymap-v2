@@ -1,5 +1,5 @@
 
-interface Captcha {
+export interface Captcha {
     id: string;
     imgUrl: string;
 }

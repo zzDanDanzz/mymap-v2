@@ -8,8 +8,9 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { z } from "zod";
 import CaptchaFields from "./(components)/captcha-form";
-import { getCaptcha, passwordLogin } from "./api";
-import { captchaFormSchema, passwordLoginFormSchema } from "./schemas";
+import { getCaptcha, passwordLogin } from "./(utils)/api";
+import { captchaFormSchema, passwordLoginFormSchema } from "./(utils)/schemas";
+import { Captcha } from "./(utils)/types";
 
 export default function Page() {
   const { login } = useLogin();

@@ -10,7 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { createApp } from "../api";
+import { createApp } from "../(utils)/api";
 
 export default function RouteProtectionWrapper({
   children,
@@ -62,7 +62,7 @@ export default function RouteProtectionWrapper({
     handleRouteProtection();
   }, [handleRouteProtection]);
 
-  if (userIsLoading || !userData || isCreatingMyApp) {
+  if (userIsLoading || !userData?.id || isCreatingMyApp) {
     return <>Loading.....</>;
   }
 
