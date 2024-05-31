@@ -23,7 +23,8 @@ function Page({ params }: { params: { id: string } }) {
       <PanelResizeHandle
         style={{
           background: "var(--mantine-color-gray-4)",
-          width: "3px",
+          width: isMobile ? "100%" : "3px",
+          height: isMobile ? "3px" : "100%",
         }}
       />
 

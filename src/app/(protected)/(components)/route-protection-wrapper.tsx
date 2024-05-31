@@ -11,6 +11,7 @@ import {
   useState,
 } from "react";
 import { createApp } from "../(utils)/api";
+import CenteredLoader from "@shared/component/centered-loader";
 
 export default function RouteProtectionWrapper({
   children,
@@ -63,7 +64,7 @@ export default function RouteProtectionWrapper({
   }, [handleRouteProtection]);
 
   if (userIsLoading || !userData?.id || isCreatingMyApp) {
-    return <>Loading.....</>;
+    return <CenteredLoader />
   }
 
   return <>{children}</>;
