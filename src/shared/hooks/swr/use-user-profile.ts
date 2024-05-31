@@ -2,7 +2,7 @@ import { ax } from "@shared/api/axios-instance";
 import urls from "@shared/api/urls";
 import { X_API_KEY } from "@shared/config";
 import { getSessionToken } from "@shared/utils/local-storage";
-import useSWRImmutable from "swr/immutable";
+import useSWR from "swr";
 interface MyApp {
   access_token: Accesstoken;
 }
@@ -27,7 +27,7 @@ const fetcher = async (url: string) => {
 };
 
 export function useUserProfile() {
-  const { data, error, isLoading, mutate, isValidating } = useSWRImmutable(
+  const { data, error, isLoading, mutate, isValidating } = useSWR(
     urls.register.mySelf,
     fetcher
   );

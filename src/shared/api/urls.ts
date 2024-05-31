@@ -1,16 +1,22 @@
-import { API_BASE, MY_API_BASE } from "@shared/config";
+import { MAPIR_API_BASE, MYMAP_API_BASE } from "@shared/config";
 
 const urls = {
   register: {
-    mySelf: `${API_BASE}/register/users/my-self`,
-    OTPSend: `${API_BASE}/register/otp/send`,
-    OTPCheck: `${API_BASE}/register/otp/check`,
-    apps: `${API_BASE}/register/apps`,
-    login: `${API_BASE}/register/tokens/user`,
-    captcha: `${API_BASE}/captcha/new/easy/5/600`,
+    mySelf: `${MAPIR_API_BASE}/register/users/my-self`,
+    OTPSend: `${MAPIR_API_BASE}/register/otp/send`,
+    OTPCheck: `${MAPIR_API_BASE}/register/otp/check`,
+    apps: `${MAPIR_API_BASE}/register/apps`,
+    login: `${MAPIR_API_BASE}/register/tokens/user`,
+    captcha: `${MAPIR_API_BASE}/captcha/new/easy/5/600`,
   },
-  datasources: `${MY_API_BASE}/mym/datasources`,
-  editorTables: `${MY_API_BASE}/editor/tables`,
+
+  mapStyles: {
+    "Dove-style": `${MAPIR_API_BASE}/vector/styles/main/mapir-Dove-style.json`,
+    "xyz-style": `${MAPIR_API_BASE}/vector/styles/main/mapir-xyz-style.json`,
+  },
+
+  datasources: `${MYMAP_API_BASE}/mym/datasources`,
+  editorTables: `${MYMAP_API_BASE}/editor/tables`,
 };
 
 export default urls;

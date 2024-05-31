@@ -28,3 +28,5 @@ export const ALL_DATA_TYPES = [
   ...NUMBER_DATA_TYPES,
   ...OTHER_DATA_TYPES,
 ];
+
+export const COLUMNS_TO_HIDE = ["deleted_at"];

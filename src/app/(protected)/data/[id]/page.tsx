@@ -1,46 +1,36 @@
 "use client";
 
+import "maplibre-gl/dist/maplibre-gl.css";
 import "react-data-grid/lib/styles.css";
 
-import DataGrid from "react-data-grid";
-import type { Column as ReactDataGridColumn } from "react-data-grid";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
-import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasource-columns";
-import { Loader } from "@mantine/core";
-import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-rows";
-import { DatasourceRow } from "@shared/types/datasource.types";
+import { em } from "@mantine/core";
 
-const columnsToHide = ["deleted_at"];
+import { useMediaQuery } from "@mantine/hooks";
+import DatasourceTable from "../(components)/datasource-table";
+import DatasourceMap from "../(components)/datasource-map";
 
 function Page({ params }: { params: { id: string } }) {
-  const { datasourceColumns, datasourceColumnsIsLoading } =
-    useDatasourceColumns({ id: params.id });
-
-  const { datasourceRows, datasourceRowsIsLoading } = useDatasourceRows({
-    id: params.id,
-  });
-
-  const transformedColumns =
-    datasourceColumns
-      ?.filter(({ name }) => !columnsToHide.includes(name))
-      .map(
-        ({ name, data_type }) =>
-          ({
-            key: name,
-            name: name,
-          } as ReactDataGridColumn<DatasourceRow>)
-      ) ?? [];
-
-  if (datasourceColumnsIsLoading || datasourceRowsIsLoading) {
-    return <Loader />;
-  }
+  const isMobile = useMediaQuery(`(max-width: ${em(750)})`);
 
   return (
-    <DataGrid
-      columns={transformedColumns}
-      rows={datasourceRows ?? []}
-      className="rdg-light"
-    />
+    <PanelGroup direction={isMobile ? "vertical" : "horizontal"}>
+      <Panel>
+        <DatasourceTable id={params.id} />
+      </Panel>
+
+      <PanelResizeHandle
+        style={{
+          background: "var(--mantine-color-gray-4)",
+          width: "3px",
+        }}
+      />
+
+      <Panel>
+        <DatasourceMap />
+      </Panel>
+    </PanelGroup>
   );
 }
 

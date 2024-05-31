@@ -25,3 +25,9 @@
     url("/fonts/woff/IRANSansWebFaNum_Bold.woff") format("woff");
   font-weight: 700;
 }
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+}
