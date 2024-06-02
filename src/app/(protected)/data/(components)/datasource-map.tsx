@@ -2,7 +2,7 @@ import Map from "react-map-gl/maplibre";
 import urls from "@shared/api/urls";
 import { getUserXApiKey } from "@shared/utils/local-storage";
 
-function DatasourceMap() {
+function DatasourceMap({id}: {id: string}) {
   return (
     <Map
       initialViewState={{
@@ -19,7 +19,7 @@ function DatasourceMap() {
           },
         };
       }}
-    />
+    ></Map>
   );
 }
 

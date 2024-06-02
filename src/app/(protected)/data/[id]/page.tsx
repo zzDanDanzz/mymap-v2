@@ -15,13 +15,12 @@ import useDatasource from "@shared/hooks/swr/datasources/use-datasource";
 
 function Page({ params }: { params: { id: string } }) {
   const isMobile = useMediaQuery(`(max-width: ${em(750)})`);
-  const {datasource} = useDatasource({id: params.id})
-  
+  const { datasource } = useDatasource({ id: params.id });
 
   return (
-    <Stack flex={"1"} style={{ overflowY: "auto" }} >
-      <Breadcrumbs pt={'md'} px={'md'}>
-        <Anchor component={Link} href="/data" >
+    <Stack flex={"1"} style={{ overflowY: "auto" }}>
+      <Breadcrumbs pt={"md"} px={"md"}>
+        <Anchor component={Link} href="/data">
           مجموعه‌داده‌ها
         </Anchor>
         <Text>{datasource?.name}</Text>
@@ -40,7 +39,7 @@ function Page({ params }: { params: { id: string } }) {
         />
 
         <Panel>
-          <DatasourceMap />
+          <DatasourceMap id={params.id} />
         </Panel>
       </PanelGroup>
     </Stack>
