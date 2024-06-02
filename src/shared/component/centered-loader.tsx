@@ -1,8 +1,8 @@
-import { Center, Loader } from "@mantine/core";
+import { Center, CenterProps, Loader } from "@mantine/core";
 
-function CenteredLoader() {
+function CenteredLoader(props: CenterProps) {
   return (
-    <Center h={"100%"} w={"100%"}>
+    <Center h={"100%"} w={"100%"} {...props}>
       <Loader />
     </Center>
   );
