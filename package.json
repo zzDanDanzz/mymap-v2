@@ -17,6 +17,7 @@
     "@persian-tools/persian-tools": "^3.5.2",
     "@tabler/icons-react": "^3.4.0",
     "@turf/boolean-valid": "^6.5.0",
+    "@turf/helpers": "^7.0.0",
     "axios": "^1.6.8",
     "mantine-form-zod-resolver": "^1.1.0",
     "maplibre-gl": "^4.3.2",

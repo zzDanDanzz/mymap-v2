@@ -9,9 +9,9 @@ import { Anchor, Breadcrumbs, Stack, em, Text } from "@mantine/core";
 
 import { useMediaQuery } from "@mantine/hooks";
 import DatasourceTable from "../(components)/datasource-table";
-import DatasourceMap from "../(components)/datasource-map";
 import Link from "next/link";
 import useDatasource from "@shared/hooks/swr/datasources/use-datasource";
+import DatasourceMap from "../(components)/datasource-map";
 
 function Page({ params }: { params: { id: string } }) {
   const isMobile = useMediaQuery(`(max-width: ${em(750)})`);

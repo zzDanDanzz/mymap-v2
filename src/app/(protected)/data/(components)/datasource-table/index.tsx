@@ -1,6 +1,4 @@
-import { Loader } from "@mantine/core";
-import styles from "./datasource-table.module.css";
-import DataGrid from "react-data-grid";
+import CenteredLoader from "@shared/component/centered-loader";
 import {
   COLUMNS_TO_HIDE,
   GEOMETRY_DATA_TYPES,
@@ -8,9 +6,9 @@ import {
 import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasource-columns";
 import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-rows";
 import { DatasourceRow } from "@shared/types/datasource.types";
-import booleanValid from "@turf/boolean-valid";
 import type { Column as ReactDataGridColumn } from "react-data-grid";
-import CenteredLoader from "@shared/component/centered-loader";
+import DataGrid from "react-data-grid";
+import styles from "./datasource-table.module.css";
 
 function DatasourceTable({ id }: { id: string }) {
   const { datasourceColumns, datasourceColumnsIsLoading } =
@@ -31,11 +29,7 @@ function DatasourceTable({ id }: { id: string }) {
             ...(GEOMETRY_DATA_TYPES.includes(data_type) && {
               renderCell(props) {
                 const geom = props.row[name];
-                if (booleanValid(geom ?? {})) {
-                  return <span>{geom?.type ?? "-"}</span>;
-                } else {
-                  return String(geom);
-                }
+                return String(geom?.type ?? geom ?? "-");
               },
             }),
           } as ReactDataGridColumn<DatasourceRow>)
