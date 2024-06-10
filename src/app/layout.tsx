@@ -26,6 +26,7 @@ export default function RootLayout({
         <MantineProvider
           theme={{
             fontFamily: 'IRANSansWeb',
+            primaryColor: 'pink'
           }}
         >
           <Notifications />

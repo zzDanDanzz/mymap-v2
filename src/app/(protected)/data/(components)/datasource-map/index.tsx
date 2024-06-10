@@ -1,6 +1,6 @@
 "use client";
 
-import { Paper, Select } from "@mantine/core";
+import { Paper, Select, useMantineTheme } from "@mantine/core";
 import urls from "@shared/api/urls";
 import { GEOMETRY_DATA_TYPES } from "@shared/constants/datasource.constants";
 import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasource-columns";
@@ -48,9 +48,7 @@ function DatasourceMap({ id }: { id: string }) {
     return featureCollection(geoms);
   }, [datasourceRows, selectedGeomColumn]);
 
-  console.log({
-    geojsonData,
-  });
+  const theme = useMantineTheme();
 
   return (
     <Map
@@ -69,9 +67,27 @@ function DatasourceMap({ id }: { id: string }) {
         };
       }}
     >
-      <Source type="geojson" data={geojsonData}>
-        <Layer type="fill" />
-      </Source>
+      {geojsonData && (
+        <Source type="geojson" data={geojsonData}>
+          {/* <Layer
+            type="fill"
+            paint={{
+              "fill-color": theme.primaryColor,
+              "fill-opacity": 0.5,
+            }}
+            filter={["==", "$type", "Polygon"]}
+          /> */}
+          <Layer
+            type="line"
+            paint={{
+              "line-color": theme.primaryColor,
+              // "line-opacity": 0.9,
+              "line-width": 2,
+            }}
+            filter={["==", "$type", "Polygon"]}
+          />
+        </Source>
+      )}
       {(geometryColumns ?? []).length > 0 && (
         <Paper pos={"absolute"} top={10} left={10} p={"sm"} withBorder>
           <Select
