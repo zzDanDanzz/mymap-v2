@@ -1,3 +1,7 @@
 .data-grid {
   height: 100%;
 }
+
+.selected-row {
+  background-color: var(--mantine-color-gray-2);
+}

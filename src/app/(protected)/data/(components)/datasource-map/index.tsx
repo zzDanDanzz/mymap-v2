@@ -1,5 +1,6 @@
 "use client";
 
+import { selectedTableRowIdAtom } from "@/data/(utils)/atoms";
 import { Paper, Select, useMantineTheme } from "@mantine/core";
 import urls from "@shared/api/urls";
 import { GEOMETRY_DATA_TYPES } from "@shared/constants/datasource.constants";
@@ -7,15 +8,14 @@ import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasour
 import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-rows";
 import { getUserXApiKey } from "@shared/utils/local-storage";
 import { feature, featureCollection } from "@turf/helpers";
+import { useAtom } from "jotai";
 import { useEffect, useMemo, useState } from "react";
-import { Layer, Source } from "react-map-gl/maplibre";
-import Map from "react-map-gl/maplibre";
+import Map, { Layer, Source } from "react-map-gl/maplibre";
 
 function DatasourceMap({ id }: { id: string }) {
-  const { datasourceColumns, datasourceColumnsIsLoading } =
-    useDatasourceColumns({ id });
+  const { datasourceColumns } = useDatasourceColumns({ id });
 
-  const { datasourceRows, datasourceRowsIsLoading } = useDatasourceRows({
+  const { datasourceRows } = useDatasourceRows({
     id,
   });
 
@@ -40,7 +40,7 @@ function DatasourceMap({ id }: { id: string }) {
       .map((row) => {
         const geom = row[selectedGeomColumn];
         if (geom?.type) {
-          return feature(geom);
+          return feature(geom, { id: row.id });
         }
       })
       .filter(Boolean) as GeoJSON.Feature<any, GeoJSON.GeoJsonProperties>[];
@@ -49,6 +49,9 @@ function DatasourceMap({ id }: { id: string }) {
   }, [datasourceRows, selectedGeomColumn]);
 
   const theme = useMantineTheme();
+  console.log("🚀 ~ geojsonData ~ geojsonData:", geojsonData);
+
+  const [selectedRowId, setSelectedRowId] = useAtom(selectedTableRowIdAtom);
 
   return (
     <Map
@@ -69,19 +72,17 @@ function DatasourceMap({ id }: { id: string }) {
     >
       {geojsonData && (
         <Source type="geojson" data={geojsonData}>
-          {/* <Layer
+          <Layer
             type="fill"
             paint={{
-              "fill-color": theme.primaryColor,
-              "fill-opacity": 0.5,
+              "fill-color": theme.colors[theme.primaryColor][5],
+              "fill-opacity": 0.4,
             }}
-            filter={["==", "$type", "Polygon"]}
-          /> */}
+          />
           <Layer
             type="line"
             paint={{
-              "line-color": theme.primaryColor,
-              // "line-opacity": 0.9,
+              "line-color": theme.colors[theme.primaryColor][5],
               "line-width": 2,
             }}
             filter={["==", "$type", "Polygon"]}
