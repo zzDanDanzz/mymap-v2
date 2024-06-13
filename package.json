@@ -18,6 +18,8 @@
     "@turf/boolean-valid": "^6.5.0",
     "@turf/helpers": "^7.0.0",
     "axios": "^1.6.8",
+    "deck.gl": "^9.0.18",
+    "hex-rgb": "^5.0.0",
     "jotai": "^2.8.3",
     "mantine-form-zod-resolver": "^1.1.0",
     "maplibre-gl": "^4.3.2",

@@ -8,6 +8,8 @@ import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasour
 import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-rows";
 import { getUserXApiKey } from "@shared/utils/local-storage";
 import { feature, featureCollection } from "@turf/helpers";
+import { DeckGL, GeoJsonLayer } from "deck.gl";
+import hexRgb from "hex-rgb";
 import { useAtom } from "jotai";
 import { useEffect, useMemo, useState } from "react";
 import Map, { Layer, Source } from "react-map-gl/maplibre";
@@ -53,56 +55,68 @@ function DatasourceMap({ id }: { id: string }) {
 
   const [selectedRowId, setSelectedRowId] = useAtom(selectedTableRowIdAtom);
 
+  const deckglLayers = useMemo(() => {
+    return [
+      new GeoJsonLayer({
+        id: "GeoJsonLayer",
+        data: geojsonData,
+        getFillColor: () => {
+          const [r, g, b] = hexRgb(theme.colors[theme.primaryColor][5], {
+            format: "array",
+          });
+          return [r, g, b, 255 * 0.75];
+        },
+        getLineColor: () => {
+          const [r, g, b] = hexRgb(theme.colors[theme.primaryColor][5], {
+            format: "array",
+          });
+          return [r, g, b, 255];
+        },
+        getLineWidth: 2,
+        lineWidthUnits: "pixels",
+      }),
+    ];
+  }, [geojsonData, theme.colors, theme.primaryColor]);
+
   return (
-    <Map
+    <DeckGL
+      controller
       initialViewState={{
         longitude: 51.4015,
         latitude: 35.6425,
         zoom: 12,
       }}
-      mapStyle={urls.mapStyles["xyz-style"]}
-      transformRequest={(url) => {
-        return {
-          url,
-          headers: {
-            "x-api-key": getUserXApiKey(),
-          },
-        };
+      style={{
+        position: "relative",
       }}
+      layers={deckglLayers}
     >
-      {geojsonData && (
-        <Source type="geojson" data={geojsonData}>
-          <Layer
-            type="fill"
-            paint={{
-              "fill-color": theme.colors[theme.primaryColor][5],
-              "fill-opacity": 0.4,
-            }}
-          />
-          <Layer
-            type="line"
-            paint={{
-              "line-color": theme.colors[theme.primaryColor][5],
-              "line-width": 2,
-            }}
-            filter={["==", "$type", "Polygon"]}
-          />
-        </Source>
-      )}
-      {(geometryColumns ?? []).length > 0 && (
-        <Paper pos={"absolute"} top={10} left={10} p={"sm"} withBorder>
-          <Select
-            size="xs"
-            label="نمایش ستون ژئومتری"
-            defaultValue={geometryColumns?.[0].name}
-            data={geometryColumns?.map(({ name }) => ({
-              value: name,
-              label: name,
-            }))}
-          />
-        </Paper>
-      )}
-    </Map>
+      <Map
+        mapStyle={urls.mapStyles["xyz-style"]}
+        transformRequest={(url) => {
+          return {
+            url,
+            headers: {
+              "x-api-key": getUserXApiKey(),
+            },
+          };
+        }}
+      >
+        {(geometryColumns ?? []).length > 0 && (
+          <Paper pos={"absolute"} top={10} left={10} p={"sm"} withBorder>
+            <Select
+              size="xs"
+              label="نمایش ستون ژئومتری"
+              defaultValue={geometryColumns?.[0].name}
+              data={geometryColumns?.map(({ name }) => ({
+                value: name,
+                label: name,
+              }))}
+            />
+          </Paper>
+        )}
+      </Map>
+    </DeckGL>
   );
 }
 
