@@ -11,6 +11,7 @@ import DataGrid from "react-data-grid";
 import styles from "./datasource-table.module.css";
 import { useAtom } from "jotai";
 import { selectedTableRowIdAtom } from "@/data/[id]/(utils)/atoms";
+import CellEditor from "./cell-editor";
 
 function rowKeyGetter(row: DatasourceRow) {
   return row.id;
@@ -28,13 +29,22 @@ function DatasourceTable({ id }: { id: string }) {
     datasourceColumns
       ?.filter(({ name }) => !COLUMNS_TO_HIDE.includes(name))
       .map(
-        ({ name, data_type }) =>
+        (col) =>
           ({
-            key: name,
-            name: name,
-            ...(GEOMETRY_DATA_TYPES.includes(data_type) && {
+            key: col.name,
+            name: col.name,
+            renderEditCell: (props) => (
+              <CellEditor
+                {...props}
+                dataType={col.data_type}
+                onRowChange={(e) => {
+                  console.log("onRowChange", e);
+                }}
+              />
+            ),
+            ...(GEOMETRY_DATA_TYPES.includes(col.data_type) && {
               renderCell(props) {
-                const geom = props.row[name];
+                const geom = props.row[col.name];
                 return String(geom?.type ?? geom ?? "-");
               },
             }),
@@ -50,6 +60,7 @@ function DatasourceTable({ id }: { id: string }) {
   return (
     <DataGrid
       columns={transformedColumns}
+      direction={"rtl"}
       rows={datasourceRows ?? []}
       rowKeyGetter={rowKeyGetter}
       className={`rdg-light ${styles["data-grid"]}`}

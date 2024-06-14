@@ -1,6 +1,5 @@
 "use client";
 
-import { selectedTableRowIdAtom } from "@/data/[id]/(utils)/atoms";
 import { Paper, Select, useMantineTheme } from "@mantine/core";
 import urls from "@shared/api/urls";
 import { GEOMETRY_DATA_TYPES } from "@shared/constants/datasource.constants";
@@ -10,9 +9,8 @@ import { getUserXApiKey } from "@shared/utils/local-storage";
 import { feature, featureCollection } from "@turf/helpers";
 import { DeckGL, GeoJsonLayer } from "deck.gl";
 import hexRgb from "hex-rgb";
-import { useAtom } from "jotai";
 import { useEffect, useMemo, useState } from "react";
-import Map, { Layer, Source } from "react-map-gl/maplibre";
+import Map from "react-map-gl/maplibre";
 
 function DatasourceMap({ id }: { id: string }) {
   const { datasourceColumns } = useDatasourceColumns({ id });
@@ -51,9 +49,6 @@ function DatasourceMap({ id }: { id: string }) {
   }, [datasourceRows, selectedGeomColumn]);
 
   const theme = useMantineTheme();
-  console.log("🚀 ~ geojsonData ~ geojsonData:", geojsonData);
-
-  const [selectedRowId, setSelectedRowId] = useAtom(selectedTableRowIdAtom);
 
   const deckglLayers = useMemo(() => {
     return [
@@ -101,21 +96,21 @@ function DatasourceMap({ id }: { id: string }) {
             },
           };
         }}
-      >
-        {(geometryColumns ?? []).length > 0 && (
-          <Paper pos={"absolute"} top={10} left={10} p={"sm"} withBorder>
-            <Select
-              size="xs"
-              label="نمایش ستون ژئومتری"
-              defaultValue={geometryColumns?.[0].name}
-              data={geometryColumns?.map(({ name }) => ({
-                value: name,
-                label: name,
-              }))}
-            />
-          </Paper>
-        )}
-      </Map>
+      />
+
+      {(geometryColumns ?? []).length > 0 && (
+        <Paper pos={"absolute"} top={10} left={10} p={"sm"} withBorder>
+          <Select
+            size="xs"
+            label="نمایش ستون ژئومتری"
+            defaultValue={geometryColumns?.[0].name}
+            data={geometryColumns?.map(({ name }) => ({
+              value: name,
+              label: name,
+            }))}
+          />
+        </Paper>
+      )}
     </DeckGL>
   );
 }

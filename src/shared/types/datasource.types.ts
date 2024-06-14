@@ -30,10 +30,9 @@ interface PrimaryGeom {
   data_type?: string;
 }
 
-
 export interface DatasourceColumn {
   name: string;
-  data_type: string;
+  data_type: ColumnDataType;
   is_nullable: boolean;
   description: null;
 }
@@ -41,3 +40,28 @@ export interface DatasourceColumn {
 export interface DatasourceRow {
   [key: string]: any;
 }
+
+type GeomColDataType =
+  | "point"
+  | "linestring"
+  | "polygon"
+  | "multipoint"
+  | "multilinestring"
+  | "multipolygon"
+  | "geometrycollection"
+  | "geometry";
+
+type TextColDataType = "string" | "text";
+type NumberColTypeID = "int" | "double" | "real";
+
+type NonGeomColDataType =
+  | TextColDataType
+  | NumberColTypeID
+  | "timestamp"
+  | "time"
+  | "uuid"
+  | "json"
+  | "bool"
+  | "attachment";
+
+export type ColumnDataType = GeomColDataType | NonGeomColDataType;
