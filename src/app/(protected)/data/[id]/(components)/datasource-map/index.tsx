@@ -1,6 +1,6 @@
 "use client";
 
-import { selectedTableRowIdAtom } from "@/data/(utils)/atoms";
+import { selectedTableRowIdAtom } from "@/data/[id]/(utils)/atoms";
 import { Paper, Select, useMantineTheme } from "@mantine/core";
 import urls from "@shared/api/urls";
 import { GEOMETRY_DATA_TYPES } from "@shared/constants/datasource.constants";
@@ -64,15 +64,15 @@ function DatasourceMap({ id }: { id: string }) {
           const [r, g, b] = hexRgb(theme.colors[theme.primaryColor][5], {
             format: "array",
           });
-          return [r, g, b, 255 * 0.75];
+          return [r, g, b, 255 * 0.3];
         },
         getLineColor: () => {
           const [r, g, b] = hexRgb(theme.colors[theme.primaryColor][5], {
             format: "array",
           });
-          return [r, g, b, 255];
+          return [r, g, b, 255 * 0.8];
         },
-        getLineWidth: 2,
+        getLineWidth: 3,
         lineWidthUnits: "pixels",
       }),
     ];

@@ -8,10 +8,10 @@ import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { Anchor, Breadcrumbs, Stack, em, Text } from "@mantine/core";
 
 import { useMediaQuery } from "@mantine/hooks";
-import DatasourceTable from "../(components)/datasource-table";
+import DatasourceTable from "./(components)/datasource-table";
 import Link from "next/link";
 import useDatasource from "@shared/hooks/swr/datasources/use-datasource";
-import DatasourceMap from "../(components)/datasource-map";
+import DatasourceMap from "./(components)/datasource-map";
 import { Provider } from "jotai";
 
 function Page({ params }: { params: { id: string } }) {

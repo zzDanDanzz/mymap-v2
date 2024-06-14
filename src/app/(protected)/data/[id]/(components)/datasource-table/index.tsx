@@ -10,7 +10,7 @@ import type { Column as ReactDataGridColumn } from "react-data-grid";
 import DataGrid from "react-data-grid";
 import styles from "./datasource-table.module.css";
 import { useAtom } from "jotai";
-import { selectedTableRowIdAtom } from "@/data/(utils)/atoms";
+import { selectedTableRowIdAtom } from "@/data/[id]/(utils)/atoms";
 
 function rowKeyGetter(row: DatasourceRow) {
   return row.id;
