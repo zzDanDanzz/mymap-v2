@@ -1,12 +1,6 @@
-import { TextInput } from "@mantine/core";
-import {
-  ColumnDataType,
-  DatasourceColumn,
-  DatasourceRow,
-} from "@shared/types/datasource.types";
+import { ColumnDataType, DatasourceRow } from "@shared/types/datasource.types";
 import React from "react";
-import { useState } from "react";
-import { RenderEditCellProps, textEditor } from "react-data-grid";
+import { RenderEditCellProps } from "react-data-grid";
 
 type CellEditorProps = RenderEditCellProps<DatasourceRow> & {
   dataType: ColumnDataType;

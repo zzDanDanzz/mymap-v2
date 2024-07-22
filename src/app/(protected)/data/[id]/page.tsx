@@ -1,7 +1,6 @@
 "use client";
 
 import "maplibre-gl/dist/maplibre-gl.css";
-import "react-data-grid/lib/styles.css";
 
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
