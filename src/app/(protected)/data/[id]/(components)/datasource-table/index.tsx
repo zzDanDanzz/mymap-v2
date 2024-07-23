@@ -47,14 +47,4 @@ function DatasourceTable({ id }: { id: string }) {
   );
 }
 
-function updateDatasourceRow({
-  datasourceId,
-  rowId,
-  updatedCell,
-}: {
-  datasourceId: string;
-  rowId: string;
-  updatedCell: { [k: string]: unknown };
-}) {}
-
 export default DatasourceTable;
