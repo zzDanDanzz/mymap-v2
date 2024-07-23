@@ -8,6 +8,7 @@ import { AgGridReact } from "ag-grid-react";
 import type { ColDef } from "ag-grid-community";
 import { COLUMNS_TO_HIDE } from "@shared/constants/datasource.constants";
 import { Box } from "@mantine/core";
+import { updateDatasourceRow } from "../../(utils)/api";
 
 function DatasourceTable({ id }: { id: string }) {
   const { datasourceColumns, datasourceColumnsIsLoading } =
@@ -34,12 +35,13 @@ function DatasourceTable({ id }: { id: string }) {
         columnDefs={transformedColumns}
         onCellEditingStopped={function (event: any) {
           const _columnField = event.colDef.field;
-          let _cellData = event.data[_columnField];
+          const _cellData = event.data[_columnField];
 
           updateDatasourceRow({
             datasourceId: id,
             rowId: event.data.id,
-            updatedCell: { [_columnField]: _cellData },
+            cellColumnName: _columnField,
+            updatedCellData: _cellData,
           });
         }}
       />

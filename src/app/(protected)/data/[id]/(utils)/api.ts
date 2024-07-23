@@ -1,18 +1,25 @@
 import { ax } from "@shared/api/axios-instance";
+import urls from "@shared/api/urls";
 import { getCommonHeaders } from "@shared/api/utils";
 
 export async function updateDatasourceRow({
   datasourceId,
   rowId,
-  updatedCell,
+  updatedCellData,
+  cellColumnName,
 }: {
   datasourceId: string;
   rowId: string;
-  updatedCell: { [k: string]: unknown };
+  cellColumnName: string;
+  updatedCellData: unknown;
 }) {
-  const url = `${}`;
+  const url = `${urls.editorTables}/${datasourceId}/rows/${rowId}`;
 
-  const res = await ax.patch(url, updatedCell, {
+  const body = { data: { [cellColumnName]: updatedCellData } };
+
+  const options = {
     headers: getCommonHeaders(),
-  });
+  };
+
+  const res = await ax.patch(url, body, options);
 }
