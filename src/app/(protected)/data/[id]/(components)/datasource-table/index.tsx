@@ -6,9 +6,12 @@ import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasour
 import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-rows";
 import { AgGridReact } from "ag-grid-react";
 import type { ColDef } from "ag-grid-community";
-import { COLUMNS_TO_HIDE } from "@shared/constants/datasource.constants";
+import {
+  COLUMNS_TO_HIDE,
+  GEOMETRY_DATA_TYPES,
+} from "@shared/constants/datasource.constants";
 import { Box } from "@mantine/core";
-import { updateDatasourceRow } from "../../(utils)/api";
+import { updateDatasourceRow } from "./(utils)/api";
 
 function DatasourceTable({ id }: { id: string }) {
   const { datasourceColumns, datasourceColumnsIsLoading } =
@@ -21,7 +24,19 @@ function DatasourceTable({ id }: { id: string }) {
   const transformedColumns =
     datasourceColumns
       ?.filter(({ name }) => !COLUMNS_TO_HIDE.includes(name))
-      .map((col) => ({ field: col.name }) as ColDef) ?? [];
+      .map((col) => {
+        const colDef: ColDef = {
+          field: col.name,
+          editable: true,
+        };
+
+        if (GEOMETRY_DATA_TYPES.includes(col.data_type)) {
+          // wip
+          colDef.cellRenderer;
+        }
+
+        return colDef;
+      }) ?? [];
 
   if (datasourceColumnsIsLoading || datasourceRowsIsLoading) {
     return <CenteredLoader />;
