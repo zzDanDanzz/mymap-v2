@@ -23,6 +23,7 @@
     "ag-grid-community": "^32.0.2",
     "ag-grid-react": "^32.0.2",
     "axios": "^1.6.8",
+    "d3": "^6.4.0",
     "deck.gl": "^9.0.18",
     "hex-rgb": "^5.0.0",
     "jotai": "^2.8.3",
@@ -38,6 +39,7 @@
     "zod": "^3.23.4"
   },
   "devDependencies": {
+    "@types/d3": "^7.4.3",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

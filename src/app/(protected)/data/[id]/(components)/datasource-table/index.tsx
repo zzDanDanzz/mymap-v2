@@ -10,12 +10,15 @@ import {
   COLUMNS_TO_HIDE,
   GEOMETRY_DATA_TYPES,
 } from "@shared/constants/datasource.constants";
-import { Box } from "@mantine/core";
+import { Box, useMantineTheme } from "@mantine/core";
 import { updateDatasourceRow } from "./(utils)/api";
+import GeomSvgPreview from "./(components)/geom-svg-preview";
 
 function DatasourceTable({ id }: { id: string }) {
   const { datasourceColumns, datasourceColumnsIsLoading } =
     useDatasourceColumns({ id });
+
+  const theme = useMantineTheme();
 
   const { datasourceRows, datasourceRowsIsLoading } = useDatasourceRows({
     id,
@@ -31,8 +34,15 @@ function DatasourceTable({ id }: { id: string }) {
         };
 
         if (GEOMETRY_DATA_TYPES.includes(col.data_type)) {
-          // wip
-          colDef.cellRenderer;
+          colDef.cellRenderer = (props: any) => {
+            console.log(props.value);
+            return (
+              <GeomSvgPreview
+                value={props.value}
+                color={theme.colors[theme.primaryColor][5]}
+              />
+            );
+          };
         }
 
         return colDef;
