@@ -7,10 +7,9 @@ import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasour
 import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-rows";
 import { getUserXApiKey } from "@shared/utils/local-storage";
 import { feature, featureCollection } from "@turf/helpers";
-import { DeckGL, GeoJsonLayer } from "deck.gl";
-import hexRgb from "hex-rgb";
 import { useEffect, useMemo, useState } from "react";
-import Map from "react-map-gl/maplibre";
+
+import Map, { Layer, Source } from "react-map-gl/maplibre";
 
 function DatasourceMap({ id }: { id: string }) {
   const { datasourceColumns } = useDatasourceColumns({ id });
@@ -20,7 +19,7 @@ function DatasourceMap({ id }: { id: string }) {
   });
 
   const geometryColumns = datasourceColumns?.filter(({ data_type }) =>
-    GEOMETRY_DATA_TYPES.includes(data_type)
+    GEOMETRY_DATA_TYPES.includes(data_type),
   );
 
   const [selectedGeomColumn, setSelectedGeomColumn] = useState<string>();
@@ -33,7 +32,7 @@ function DatasourceMap({ id }: { id: string }) {
 
   const geojsonData = useMemo(() => {
     if (!selectedGeomColumn || !datasourceRows) {
-      return [];
+      return null;
     }
 
     const geoms = datasourceRows
@@ -48,55 +47,69 @@ function DatasourceMap({ id }: { id: string }) {
     return featureCollection(geoms);
   }, [datasourceRows, selectedGeomColumn]);
 
+  useEffect(() => {
+    console.log("geojsonData", geojsonData);
+  }, [geojsonData]);
+
   const theme = useMantineTheme();
 
-  const deckglLayers = useMemo(() => {
-    return [
-      new GeoJsonLayer({
-        id: "GeoJsonLayer",
-        data: geojsonData,
-        getFillColor: () => {
-          const [r, g, b] = hexRgb(theme.colors[theme.primaryColor][5], {
-            format: "array",
-          });
-          return [r, g, b, 255 * 0.3];
-        },
-        getLineColor: () => {
-          const [r, g, b] = hexRgb(theme.colors[theme.primaryColor][5], {
-            format: "array",
-          });
-          return [r, g, b, 255 * 0.8];
-        },
-        getLineWidth: 3,
-        lineWidthUnits: "pixels",
-      }),
-    ];
-  }, [geojsonData, theme.colors, theme.primaryColor]);
+  // const deckglLayers = useMemo(() => {
+  //   return [
+  //     new GeoJsonLayer({
+  //       id: "GeoJsonLayer",
+  //       data: geojsonData,
+  //       getFillColor: () => {
+  //         const [r, g, b] = hexRgb(theme.colors[theme.primaryColor][5], {
+  //           format: "array",
+  //         });
+  //         return [r, g, b, 255 * 0.3];
+  //       },
+  //       getLineColor: () => {
+  //         const [r, g, b] = hexRgb(theme.colors[theme.primaryColor][5], {
+  //           format: "array",
+  //         });
+  //         return [r, g, b, 255 * 0.8];
+  //       },
+  //       getLineWidth: 3,
+  //       lineWidthUnits: "pixels",
+  //     }),
+  //   ];
+  // }, [geojsonData, theme.colors, theme.primaryColor]);
 
   return (
-    <DeckGL
-      controller
+    <Map
+      // style={{
+      //   position: "relative",
+      // }}
       initialViewState={{
         longitude: 51.4015,
         latitude: 35.6425,
         zoom: 12,
       }}
-      style={{
-        position: "relative",
+      mapStyle={urls.mapStyles["xyz-style"]}
+      transformRequest={(url) => {
+        return {
+          url,
+          headers: {
+            "x-api-key": getUserXApiKey(),
+          },
+        };
       }}
-      layers={deckglLayers}
     >
-      <Map
-        mapStyle={urls.mapStyles["xyz-style"]}
-        transformRequest={(url) => {
-          return {
-            url,
-            headers: {
-              "x-api-key": getUserXApiKey(),
-            },
-          };
-        }}
-      />
+      {geojsonData && (
+        <Source data={geojsonData} type="geojson" id="geojson-source">
+          <Layer
+            source="geojson-source"
+            id="geojson-layer"
+            type="circle"
+            paint={{
+              "circle-color": theme.colors[theme.primaryColor][5],
+              "circle-radius": 5,
+              // "circle-blur": 0.5,
+            }}
+          />
+        </Source>
+      )}
 
       {(geometryColumns ?? []).length > 0 && (
         <Paper pos={"absolute"} top={10} left={10} p={"sm"} withBorder>
@@ -111,7 +124,7 @@ function DatasourceMap({ id }: { id: string }) {
           />
         </Paper>
       )}
-    </DeckGL>
+    </Map>
   );
 }
 

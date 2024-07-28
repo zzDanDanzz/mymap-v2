@@ -38,7 +38,7 @@ function SVGPreview({
       const projection = d3.geoMercator().fitSize([width, height], _geoJson);
       const path = d3.geoPath().projection(projection);
 
-      if (_geoJson.type === "Point") {
+      if (_geoJson.type.includes("Point")) {
         svg
           .selectAll("circle")
           .data([_geoJson.coordinates])
@@ -48,12 +48,12 @@ function SVGPreview({
           .attr("cy", "50%")
           .attr("r", "2px")
           .attr("fill", color)
-          .attr("stroke", (d) => color);
+          .attr("stroke", color);
       } else {
         svg
           .append("path")
-          .attr("fill", (d) => color)
-          .attr("stroke", (d) => color)
+          .attr("fill", color)
+          .attr("stroke", color)
           .style("stroke-width", "2px")
           .attr("fill-opacity", "0.1")
           .datum(_geoJson)
@@ -78,8 +78,6 @@ function GeomSvgPreview({
   if (!value || typeof value !== "object") {
     return null;
   }
-
-  console.log("value", value);
 
   return <SVGPreview geoJson={value} color={color} />;
 }
