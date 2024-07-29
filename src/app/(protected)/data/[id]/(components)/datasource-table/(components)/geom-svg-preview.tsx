@@ -49,6 +49,14 @@ function SVGPreview({
           .attr("r", "2px")
           .attr("fill", color)
           .attr("stroke", color);
+      } else if (_geoJson.type.includes("LineString")) {
+        svg
+          .append("path")
+          .attr("stroke", color)
+          .style("stroke-width", "2px")
+          .attr("fill-opacity", "0")
+          .datum(_geoJson)
+          .attr("d", path);
       } else {
         svg
           .append("path")
