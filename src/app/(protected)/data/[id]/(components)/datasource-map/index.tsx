@@ -47,40 +47,10 @@ function DatasourceMap({ id }: { id: string }) {
     return featureCollection(geoms);
   }, [datasourceRows, selectedGeomColumn]);
 
-  useEffect(() => {
-    console.log("geojsonData", geojsonData);
-  }, [geojsonData]);
-
   const theme = useMantineTheme();
-
-  // const deckglLayers = useMemo(() => {
-  //   return [
-  //     new GeoJsonLayer({
-  //       id: "GeoJsonLayer",
-  //       data: geojsonData,
-  //       getFillColor: () => {
-  //         const [r, g, b] = hexRgb(theme.colors[theme.primaryColor][5], {
-  //           format: "array",
-  //         });
-  //         return [r, g, b, 255 * 0.3];
-  //       },
-  //       getLineColor: () => {
-  //         const [r, g, b] = hexRgb(theme.colors[theme.primaryColor][5], {
-  //           format: "array",
-  //         });
-  //         return [r, g, b, 255 * 0.8];
-  //       },
-  //       getLineWidth: 3,
-  //       lineWidthUnits: "pixels",
-  //     }),
-  //   ];
-  // }, [geojsonData, theme.colors, theme.primaryColor]);
 
   return (
     <Map
-      // style={{
-      //   position: "relative",
-      // }}
       initialViewState={{
         longitude: 51.4015,
         latitude: 35.6425,
@@ -97,15 +67,32 @@ function DatasourceMap({ id }: { id: string }) {
       }}
     >
       {geojsonData && (
-        <Source data={geojsonData} type="geojson" id="geojson-source">
+        <Source data={geojsonData} type="geojson">
           <Layer
-            source="geojson-source"
-            id="geojson-layer"
             type="circle"
             paint={{
-              "circle-color": theme.colors[theme.primaryColor][5],
-              "circle-radius": 5,
-              // "circle-blur": 0.5,
+              "circle-color": theme.colors[theme.primaryColor][4],
+              "circle-stroke-color": theme.colors[theme.primaryColor][7],
+              "circle-stroke-width": 2,
+              "circle-opacity": 0.75,
+            }}
+            filter={["==", "$type", "Point"]}
+          />
+          <Layer
+            type="fill"
+            paint={{
+              "fill-color": theme.colors[theme.primaryColor][4],
+              "fill-outline-color": theme.colors[theme.primaryColor][7],
+              "fill-opacity": 0.75,
+            }}
+            filter={["==", "$type", "Polygon"]}
+          />
+          <Layer
+            type="line"
+            paint={{
+              "line-color": theme.colors[theme.primaryColor][7],
+              "line-width": 3,
+              "line-opacity": 0.75,
             }}
           />
         </Source>
