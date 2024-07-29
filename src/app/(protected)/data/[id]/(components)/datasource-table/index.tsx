@@ -1,12 +1,20 @@
 import "ag-grid-community/styles/ag-grid.css"; // Core grid CSS, always needed
 import "ag-grid-community/styles/ag-theme-alpine.css"; // Optional theme CSS
 
-import { Box, useMantineTheme } from "@mantine/core";
+import {
+  ActionIcon,
+  Box,
+  Flex,
+  Group,
+  Stack,
+  useMantineTheme,
+} from "@mantine/core";
 import CenteredLoader from "@shared/component/centered-loader";
 import {
   COLUMNS_TO_HIDE,
   GEOMETRY_DATA_TYPES,
 } from "@shared/constants/datasource.constants";
+import useDatasource from "@shared/hooks/swr/datasources/use-datasource";
 import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasource-columns";
 import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-rows";
 import { DatasourceColumn } from "@shared/types/datasource.types";
@@ -15,6 +23,9 @@ import { AgGridReact } from "ag-grid-react";
 import { useCallback, useMemo } from "react";
 import GeomSvgPreview from "./(components)/geom-svg-preview";
 import { updateDatasourceRow } from "./(utils)/api";
+import { IconDownload } from "@tabler/icons-react";
+import ActionButtons from "./(components)/action-buttons";
+import { useParams } from "next/navigation";
 
 function useColDefs(datasourceColumns: DatasourceColumn[] | undefined) {
   const theme = useMantineTheme();
@@ -49,13 +60,17 @@ function useColDefs(datasourceColumns: DatasourceColumn[] | undefined) {
   return transformedColumns;
 }
 
-function DatasourceTable({ id }: { id: string }) {
+function DatasourceTable() {
+  const { id } = useParams<{ id: string }>();
+
   const { datasourceColumns, datasourceColumnsIsLoading } =
     useDatasourceColumns({ id });
 
   const { datasourceRows, datasourceRowsIsLoading } = useDatasourceRows({
     id,
   });
+
+  const { datasource } = useDatasource({ id });
 
   const colDefs = useColDefs(datasourceColumns);
 
@@ -82,14 +97,19 @@ function DatasourceTable({ id }: { id: string }) {
   }
 
   return (
-    <Box className="ag-theme-alpine" h={"100%"} p={"lg"}>
+    <Stack h={"100%"}>
+      <title>{datasource?.name}</title>
+      <Group>
+        <ActionButtons />
+      </Group>
       <AgGridReact
+        className="ag-theme-alpine"
         enableRtl={true}
         rowData={datasourceRows}
         columnDefs={colDefs}
         onCellEditingStopped={onCellEditingStopped}
       />
-    </Box>
+    </Stack>
   );
 }
 

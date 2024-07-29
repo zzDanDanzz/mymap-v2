@@ -26,7 +26,7 @@ function Page({ params }: { params: { id: string } }) {
         </Breadcrumbs>
         <PanelGroup direction={isMobile ? "vertical" : "horizontal"}>
           <Panel>
-            <DatasourceTable id={params.id} />
+            <DatasourceTable />
           </Panel>
 
           <PanelResizeHandle

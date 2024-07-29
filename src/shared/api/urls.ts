@@ -10,6 +10,11 @@ const urls = {
     captcha: `${MAPIR_API_BASE}/captcha/new/easy/5/600`,
   },
 
+  transfer: {
+    import: `/transfer/import`,
+    export: `/transfer/export`,
+  },
+
   mapStyles: {
     "Dove-style": `${MAPIR_API_BASE}/vector/styles/main/mapir-Dove-style.json`,
     "xyz-style": `${MAPIR_API_BASE}/vector/styles/main/mapir-xyz-style.json`,

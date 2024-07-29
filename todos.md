@@ -1,0 +1,12 @@
+- pagination
+- all the menu buttons in a menu
+  - for downld th pdf nds a dfrnt lgc
+- add column and row
+- search
+- reordering
+  - col order in export
+- pinning
+- del col
+- show datatype and patch datatype
+- total num of records
+- redirect after login
