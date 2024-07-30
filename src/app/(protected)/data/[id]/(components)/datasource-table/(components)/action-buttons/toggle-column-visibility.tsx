@@ -1,16 +1,17 @@
 import {
-    ActionIcon,
-    Checkbox,
-    Popover,
-    ScrollArea,
-    Stack,
-    TextInput,
+  ActionIcon,
+  Checkbox,
+  Popover,
+  ScrollArea,
+  Stack,
+  TextInput,
 } from "@mantine/core";
 import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasource-columns";
 import { IconEyeOff } from "@tabler/icons-react";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { updateDatasourceColumn } from "../../(utils)/api";
+import { COLUMNS_TO_HIDE } from "@shared/constants/datasource.constants";
 
 function ToggleColumnVisibility() {
   const { id } = useParams<{ id: string }>();
@@ -52,7 +53,7 @@ function ToggleColumnVisibility() {
   return (
     <Popover width={200}>
       <Popover.Target>
-        <ActionIcon variant="filled">
+        <ActionIcon variant="filled" title="پنهان / نمایش ستون‌ها">
           <IconEyeOff />
         </ActionIcon>
       </Popover.Target>
@@ -66,7 +67,7 @@ function ToggleColumnVisibility() {
           <ScrollArea.Autosize mah={250} type="auto">
             <Stack>
               {filteredColumns?.map((c) => {
-                if (c.name === "deleted_at") return null;
+                if (COLUMNS_TO_HIDE.includes(c.name)) return null;
                 return (
                   <Checkbox
                     disabled={checkboxesLoadingMap[c.name]}
