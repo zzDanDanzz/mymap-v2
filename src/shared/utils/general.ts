@@ -1,4 +1,3 @@
-/** Function to Opens download prompt to save given link */
 export const downloadThisLink = ({
   url,
   name,

@@ -35,6 +35,14 @@ export interface DatasourceColumn {
   data_type: ColumnDataType;
   is_nullable: boolean;
   description: null;
+  settings: EditorColumnSetting | null;
+}
+
+interface EditorColumnSetting {
+  hide?: boolean;
+  pinned?: "right" | "left" | false;
+  columnGroupShow?: string;
+  ordinal_position?: number;
 }
 
 export interface DatasourceRow {

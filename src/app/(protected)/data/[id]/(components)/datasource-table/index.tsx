@@ -1,14 +1,7 @@
 import "ag-grid-community/styles/ag-grid.css"; // Core grid CSS, always needed
 import "ag-grid-community/styles/ag-theme-alpine.css"; // Optional theme CSS
 
-import {
-  ActionIcon,
-  Box,
-  Flex,
-  Group,
-  Stack,
-  useMantineTheme,
-} from "@mantine/core";
+import { Group, Stack, useMantineTheme } from "@mantine/core";
 import CenteredLoader from "@shared/component/centered-loader";
 import {
   COLUMNS_TO_HIDE,
@@ -20,12 +13,11 @@ import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-
 import { DatasourceColumn } from "@shared/types/datasource.types";
 import type { CellEditingStoppedEvent, ColDef } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
+import { useParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
+import ActionButtons from "./(components)/action-buttons";
 import GeomSvgPreview from "./(components)/geom-svg-preview";
 import { updateDatasourceRow } from "./(utils)/api";
-import { IconDownload } from "@tabler/icons-react";
-import ActionButtons from "./(components)/action-buttons";
-import { useParams } from "next/navigation";
 
 function useColDefs(datasourceColumns: DatasourceColumn[] | undefined) {
   const theme = useMantineTheme();

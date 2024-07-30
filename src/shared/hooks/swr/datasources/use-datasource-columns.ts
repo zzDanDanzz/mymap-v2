@@ -15,7 +15,7 @@ const fetcher = async (url: string) => {
 export function useDatasourceColumns({ id }: { id: string }) {
   const { data, error, isLoading, isValidating, mutate } = useSWR(
     `${urls.editorTables}/${id}/columns`,
-    fetcher
+    fetcher,
   );
 
   return {

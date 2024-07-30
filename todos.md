@@ -10,3 +10,5 @@
 - show datatype and patch datatype
 - total num of records
 - redirect after login
+- handle columns with special rendering like attachments
+- bbox zoom when opening datasource

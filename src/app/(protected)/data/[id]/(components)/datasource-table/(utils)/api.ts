@@ -23,7 +23,29 @@ export async function updateDatasourceRow({
     headers: getCommonHeaders(),
   };
 
-  const res = await ax.patch(url, body, options);
+  await ax.patch(url, body, options);
+}
+
+export async function updateDatasourceColumn({
+  datasourceId,
+  columnID,
+  updatedColumnData,
+}: {
+  datasourceId: string;
+  columnID: string;
+  updatedColumnData: any;
+}) {
+  const url = `${urls.editorTables}/${datasourceId}/columns/${columnID}`;
+
+  const body = {
+    column: updatedColumnData,
+  };
+
+  const options = {
+    headers: getCommonHeaders(),
+  };
+
+  await ax.patch(url, body, options);
 }
 
 export async function exportDatasourceTable({
@@ -56,7 +78,7 @@ export async function exportDatasourceTable({
     const blobUrl = window.URL.createObjectURL(data);
 
     downloadThisLink({
-      name: datasourceName,
+      name: datasourceName + "." + format,
       url: blobUrl,
     });
 

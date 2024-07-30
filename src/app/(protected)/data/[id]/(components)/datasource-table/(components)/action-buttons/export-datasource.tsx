@@ -1,10 +1,10 @@
-import { ActionIcon, Group, Menu } from "@mantine/core";
-import { IconDownload } from "@tabler/icons-react";
-import { useMemo } from "react";
-import { exportDatasourceTable } from "../(utils)/api";
+import { ActionIcon, Menu } from "@mantine/core";
 import useDatasource from "@shared/hooks/swr/datasources/use-datasource";
-import { useParams } from "next/navigation";
 import notify from "@shared/utils/toasts";
+import { IconDownload } from "@tabler/icons-react";
+import { useParams } from "next/navigation";
+import { useMemo } from "react";
+import { exportDatasourceTable } from "../../(utils)/api";
 
 function ExportDatasource() {
   const { id } = useParams<{ id: string }>();
@@ -12,7 +12,7 @@ function ExportDatasource() {
   const { datasource } = useDatasource({ id });
 
   const menuItems = useMemo(
-    () => ["csv", "geojson", "shapefile", "kml", "gml", "xlsx", "pdf"],
+    () => ["csv", "geojson", "shapefile", "kml", "gml", "xlsx"],
     [],
   );
 
@@ -55,12 +55,4 @@ function ExportDatasource() {
   );
 }
 
-function ActionButtons() {
-  return (
-    <Group>
-      <ExportDatasource />
-    </Group>
-  );
-}
-
-export default ActionButtons;
+export default ExportDatasource;
