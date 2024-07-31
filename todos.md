@@ -12,3 +12,5 @@
 - redirect after login
 - handle columns with special rendering like attachments
 - bbox zoom when opening datasource
+- metadata (title, description, etc)
+- option to switch layouts in data source page for example data source only view or map only view or both

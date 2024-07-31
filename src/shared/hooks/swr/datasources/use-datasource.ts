@@ -12,10 +12,10 @@ const fetcher = async (url: string) => {
   return res.data.data;
 };
 
-function useDatasource({ id }: { id: string }) {
+function useDatasource({ id }: { id: string | undefined }) {
   const { data, error, isLoading, isValidating, mutate } = useSWR(
-    `${urls.datasources}/${id}`,
-    fetcher
+    id ? `${urls.datasources}/${id}` : null,
+    fetcher,
   );
 
   return {
