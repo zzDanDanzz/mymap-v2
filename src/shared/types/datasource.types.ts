@@ -36,6 +36,7 @@ export interface DatasourceColumn {
   is_nullable: boolean;
   description: null;
   settings: EditorColumnSetting | null;
+  group_name?: string;
 }
 
 interface EditorColumnSetting {

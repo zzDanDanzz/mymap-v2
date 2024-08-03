@@ -58,8 +58,11 @@ function useColDefs({
 
     return (
       datasourceColumns
+        // hide special columns
         ?.filter(({ name }) => !COLUMNS_TO_HIDE.includes(name))
+        // sort based on datasource ordering setting
         .toSorted(compareFn)
+        // create ag-grid column definitions
         .map((col) => {
           const colDef: ColDef = {
             field: col.name,
@@ -76,6 +79,14 @@ function useColDefs({
                   color={theme.colors[theme.primaryColor][5]}
                 />
               );
+            };
+          }
+
+          // handle grouping columns
+          if (col.group_name) {
+            return {
+              headerName: col.group_name,
+              children: [colDef],
             };
           }
 
