@@ -27,6 +27,7 @@
     "hex-rgb": "^5.0.0",
     "jotai": "^2.8.3",
     "lodash.difference": "^4.5.0",
+    "lodash.groupby": "^4.6.0",
     "lodash.isequal": "^4.5.0",
     "lodash.pullall": "^4.2.0",
     "mantine-form-zod-resolver": "^1.1.0",
@@ -43,6 +44,7 @@
   "devDependencies": {
     "@types/d3": "^7.4.3",
     "@types/lodash.difference": "^4.5.9",
+    "@types/lodash.groupby": "^4.6.9",
     "@types/lodash.isequal": "^4.5.8",
     "@types/lodash.pullall": "^4.2.9",
     "@types/mapbox__mapbox-gl-draw": "^1.4.7",

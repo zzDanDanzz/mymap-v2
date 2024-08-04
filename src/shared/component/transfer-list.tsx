@@ -17,9 +17,14 @@ import {
 } from "@tabler/icons-react";
 import { useEffect, useMemo, useState } from "react";
 
-export type Value = {
+/**
+ *
+ * @param T: optional context type if you need to associate some data with the value
+ */
+export type Value<T = unknown> = {
   id: string;
   label: string;
+  context?: T;
 };
 
 interface ITransferListProps {

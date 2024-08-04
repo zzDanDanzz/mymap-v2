@@ -2,43 +2,41 @@ import {
   ActionIcon,
   Button,
   Group,
-  Input,
   Menu,
   Paper,
   Stack,
   Text,
+  TextInput,
+  rem,
 } from "@mantine/core";
-import { useRef } from "react";
-import { useImmer } from "use-immer";
+import { useRef, useState } from "react";
 
-import { IconSettings } from "@tabler/icons-react";
+import {
+  IconLayoutColumns,
+  IconPencil,
+  IconSettings,
+  IconTrash,
+} from "@tabler/icons-react";
 
 import { useDisclosure } from "@mantine/hooks";
-import { ColDef } from "ag-grid-community";
+import TransferList, { Value } from "@shared/component/transfer-list";
+import { DatasourceColumn } from "@shared/types/datasource.types";
 import { flushSync } from "react-dom";
-
-const INITIAL_TRANSFER_LIST_DATA = {
-  isTransfering: false,
-  props: {
-    value: [[], []] as TransferListData,
-    titles: ["", ""] as [string, string],
-  },
-};
+import { GroupedColumn } from "./types";
 
 function getUniqueGroupName({
   groupedColumns,
 }: {
-  groupedColumns: DataGridColumnDefGrouped[];
+  groupedColumns: GroupedColumn[];
 }) {
   const _getHeaderName = (count: number) => `گروه جدید ${count}`;
 
   let nameCount = 1;
 
-  // eslint-disable-next-line no-constant-condition
   while (true) {
-    const newHeaderName = _getHeaderName(nameCount);
+    const newGroupName = _getHeaderName(nameCount);
     const nameAlreadyExists = groupedColumns.some(
-      (col) => col.headerName === newHeaderName,
+      (col) => col.groupName === newGroupName,
     );
     if (nameAlreadyExists) nameCount++;
     if (!nameAlreadyExists) break;
@@ -47,6 +45,11 @@ function getUniqueGroupName({
   return _getHeaderName(nameCount);
 }
 
+const INITIAL_GROUP_TRANSFER_LIST_DATA = {
+  values: [[], []] as [Value[], Value[]],
+  titles: ["", ""] as [string, string],
+};
+
 function ColumnsGroupingModalContent({
   initialGroupedCols,
   initialUngroupedCols,
@@ -54,16 +57,16 @@ function ColumnsGroupingModalContent({
   onSubmit,
   loading,
 }: {
-  initialGroupedCols: DataGridColumnDefGrouped[];
-  initialUngroupedCols: DataGridColumnDefSimple[];
+  initialGroupedCols: GroupedColumn[];
+  initialUngroupedCols: DatasourceColumn[];
   onCancel: () => void;
   onSubmit: (columns: {
-    grouped: DataGridColumnDefGrouped[];
-    ungrouped: DataGridColumnDefSimple[];
+    grouped: GroupedColumn[];
+    ungrouped: DatasourceColumn[];
   }) => void;
   loading: boolean;
 }) {
-  const [columns, setColumns] = useImmer({
+  const [columns, setColumns] = useState({
     grouped: initialGroupedCols,
     ungrouped: initialUngroupedCols,
   });
@@ -71,10 +74,16 @@ function ColumnsGroupingModalContent({
   const _groupedColumnsContainerRef = useRef<HTMLDivElement>(null);
 
   function createNewGroup() {
-    setColumns((gc) => {
-      gc.grouped.push({
-        headerName: getUniqueGroupName({ groupedColumns: columns.grouped }),
-        children: [],
+    flushSync(() => {
+      setColumns({
+        ...columns,
+        grouped: [
+          ...columns.grouped,
+          {
+            groupName: getUniqueGroupName({ groupedColumns: columns.grouped }),
+            columns: [],
+          },
+        ],
       });
     });
 
@@ -83,103 +92,123 @@ function ColumnsGroupingModalContent({
       if (div) div.scrollTop = div.scrollHeight;
     }
 
-    setTimeout(scrollIntoView, 150);
+    scrollIntoView();
   }
 
-  function handleEditName({
+  function handleEditGroupName({
     newName,
     prevName,
   }: {
     newName: string;
     prevName: string;
   }) {
-    setColumns((prevGroupedCols) => {
-      for (const prevCol of prevGroupedCols.grouped) {
-        if (prevCol.headerName === prevName) {
+    setColumns({
+      ...columns,
+      grouped: columns.grouped.map((col) => {
+        if (col.groupName === prevName) {
           if (typeof newName === "string" && newName !== "") {
-            prevCol.headerName = newName;
+            col.groupName = newName;
           }
         }
-      }
+        return col;
+      }),
     });
   }
 
-  function handleDelete(name: string) {
-    setColumns((prevCols) => {
-      const i = prevCols.grouped.findIndex((c) => c.headerName === name);
-      if (i === -1) return;
-      prevCols.ungrouped = prevCols.grouped[i].children;
-      prevCols.grouped.splice(i, 1);
+  function handleDeleteGroup(name: string) {
+    const deletedGroup = columns.grouped.find((col) => col.groupName === name);
+
+    if (!deletedGroup) return;
+
+    setColumns({
+      grouped: columns.grouped.filter((col) => col.groupName !== name),
+      ungrouped: [...columns.ungrouped, ...deletedGroup.columns],
     });
   }
 
-  const [transferListData, setTransferListData] = useImmer(
-    INITIAL_TRANSFER_LIST_DATA,
+  const [isEditingGroup, setIsEditingGroup] = useState(false);
+
+  const [groupTransferListData, setGroupTransferListData] = useState(
+    INITIAL_GROUP_TRANSFER_LIST_DATA,
   );
 
-  function handleEditChildren(name: string) {
-    const groupChildren = columns.grouped
-      .find((g) => g.headerName === name)
-      ?.children.map((c: ColDef) => {
-        return {
-          label: c.field,
-          value: c.field,
-          colDef: c,
-        } as TransferListItem;
-      });
+  function handleEditGroupColumns(name: string) {
+    const columnsInThisGroup = columns.grouped.find(
+      (g) => g.groupName === name,
+    )?.columns;
 
-    const ungroupedColumns = columns.ungrouped.map((c) => {
-      return {
-        label: c.field,
-        value: c.field,
-        colDef: c,
-      } as TransferListItem;
+    if (!columnsInThisGroup) return;
+
+    const transferListLeftValues = columnsInThisGroup.map(
+      (c) =>
+        ({
+          id: c.name,
+          label: c.name,
+          context: c,
+        }) as Value,
+    );
+
+    const transferListRightValues = columns.ungrouped.map(
+      (c) =>
+        ({
+          id: c.name,
+          label: c.name,
+          context: c,
+        }) as Value,
+    );
+
+    setGroupTransferListData({
+      values: [transferListLeftValues, transferListRightValues],
+      titles: [name, "بدون گروه"],
     });
 
-    if (!groupChildren) return;
-
-    setTransferListData({
-      props: {
-        value: [groupChildren, ungroupedColumns],
-        titles: [name, "بدون گروه"],
-      },
-      isTransfering: true,
-    });
+    setIsEditingGroup(true);
   }
 
-  if (transferListData.isTransfering) {
+  if (isEditingGroup) {
     return (
       <Stack>
         <TransferList
-          transferAllMatchingFilter
           nothingFound="ستونی با این اسم پیدا نشد."
           placeholder="ستونی ندارد."
           onChange={(newTLD) => {
-            setTransferListData((prevTLD) => {
-              prevTLD.props.value = newTLD;
+            setGroupTransferListData({
+              values: newTLD,
+              titles: groupTransferListData.titles,
             });
           }}
-          {...transferListData.props}
+          values={groupTransferListData.values}
+          titles={groupTransferListData.titles}
         />
         <Group>
           <Button
             variant="outline"
             onClick={() => {
-              const [groupChildren, ungroupedColumns] =
-                transferListData.props.value;
+              const [newGroupedCols, newUngroupedColumns] =
+                groupTransferListData.values as [
+                  Value<DatasourceColumn>[],
+                  Value<DatasourceColumn>[],
+                ];
 
-              const [headerName] = transferListData.props.titles;
+              const [editedGroupGroupName] = groupTransferListData.titles;
 
-              setColumns((cols) => {
-                for (const c of cols.grouped) {
-                  if (c.headerName === headerName) {
-                    c.children = groupChildren.map((gc) => gc.colDef);
+              const newColumns = {
+                grouped: columns.grouped.map((g) => {
+                  if (g.groupName === editedGroupGroupName) {
+                    return {
+                      groupName: g.groupName,
+                      columns: newGroupedCols.map((gc) => gc.context!),
+                    };
                   }
-                }
-                cols.ungrouped = ungroupedColumns.map((gc) => gc.colDef);
-              });
 
-              setTransferListData(INITIAL_TRANSFER_LIST_DATA);
+                  return g;
+                }),
+                ungrouped: newUngroupedColumns.map((gc) => gc.context!),
+              };
+
+              setColumns(newColumns);
+
+              setGroupTransferListData(INITIAL_GROUP_TRANSFER_LIST_DATA);
             }}
           >
             بازگشت
@@ -190,7 +219,7 @@ function ColumnsGroupingModalContent({
   }
 
   return (
-    <Stack spacing={"lg"}>
+    <Stack gap={"lg"}>
       <Stack
         className="max-h-[200px] overflow-y-auto"
         ref={_groupedColumnsContainerRef}
@@ -198,19 +227,19 @@ function ColumnsGroupingModalContent({
         {columns.grouped.map((col) => {
           return (
             <GroupCard
-              key={col.headerName}
+              key={col.groupName}
               column={col}
               onEditName={(newName) =>
-                handleEditName({ newName, prevName: col.headerName! })
+                handleEditGroupName({ newName, prevName: col.groupName })
               }
-              onGroupDelete={handleDelete}
-              onEditGroupChildren={handleEditChildren}
+              onGroupDelete={handleDeleteGroup}
+              onEditGroupChildren={handleEditGroupColumns}
             />
           );
         })}
       </Stack>
 
-      <Group position="apart">
+      <Group justify="space-between">
         <Button
           disabled={loading}
           variant="outline"
@@ -219,7 +248,7 @@ function ColumnsGroupingModalContent({
         >
           گروه جدید +
         </Button>
-        <Group position="right">
+        <Group justify="flex-end">
           <Button
             disabled={loading}
             variant="outline"
@@ -244,7 +273,7 @@ function GroupCard({
   onGroupDelete,
   onEditGroupChildren,
 }: {
-  column: DataGridColumnDefGrouped;
+  column: GroupedColumn;
   onEditName: (newName: string) => void;
   onGroupDelete: (name: string) => void;
   onEditGroupChildren: (name: string) => void;
@@ -263,32 +292,31 @@ function GroupCard({
 
   return (
     <Paper withBorder p={"md"}>
-      <Group position="apart">
+      <Group justify="space-between">
         {isEditingName ? (
-          <Input
+          <TextInput
             ref={inputRef}
-            defaultValue={column.headerName}
+            defaultValue={column.groupName}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
-                // @ts-ignore
-                const newGroupName = e.target.value;
+                const newGroupName = e.currentTarget.value.trim();
                 onEditName(newGroupName);
                 stopEditingName();
               }
             }}
             onBlur={(e) => {
-              const newGroupName = e.target.value;
+              const newGroupName = e.currentTarget.value.trim();
               onEditName(newGroupName);
               stopEditingName();
             }}
           />
         ) : (
-          <Text>{column.headerName}</Text>
+          <Text>{column.groupName}</Text>
         )}
 
         <Menu position="right-start">
           <Menu.Target>
-            <ActionIcon>
+            <ActionIcon variant="subtle">
               <IconSettings />
             </ActionIcon>
           </Menu.Target>
@@ -296,15 +324,30 @@ function GroupCard({
           <Menu.Dropdown>
             <Menu.Item
               onClick={() => {
-                onEditGroupChildren(column.headerName!);
+                onEditGroupChildren(column.groupName);
               }}
+              leftSection={
+                <IconLayoutColumns
+                  style={{ width: rem(14), height: rem(14) }}
+                />
+              }
             >
               ویرایش گروه
             </Menu.Item>
-            <Menu.Item onClick={startEditingName}>ویرایش نام</Menu.Item>
             <Menu.Item
-              onClick={() => onGroupDelete(column.headerName!)}
+              onClick={startEditingName}
+              leftSection={
+                <IconPencil style={{ width: rem(14), height: rem(14) }} />
+              }
+            >
+              ویرایش نام
+            </Menu.Item>
+            <Menu.Item
+              onClick={() => onGroupDelete(column.groupName)}
               color="red"
+              leftSection={
+                <IconTrash style={{ width: rem(14), height: rem(14) }} />
+              }
             >
               حذف
             </Menu.Item>
