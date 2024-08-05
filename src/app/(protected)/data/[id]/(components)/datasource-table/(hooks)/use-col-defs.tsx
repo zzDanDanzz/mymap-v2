@@ -8,6 +8,8 @@ import type { ColDef } from "ag-grid-community";
 import { useMemo } from "react";
 import GeomSvgPreview from "../(components)/geom-svg-preview";
 import { useColumnOrdering } from "./use-column-ordering";
+import { CustomHeaderProps } from "ag-grid-react";
+import CustomGridHeader from "../(components)/custom-grid-header";
 
 function useColDefs({
   currentDatasource,
@@ -51,6 +53,12 @@ function useColDefs({
             field: col.name,
             editable: true,
             pinned: col.settings?.pinned ?? false,
+            headerComponent: (props: CustomHeaderProps) => (
+              <CustomGridHeader {...props} />
+            ),
+            context: {
+              apiColumnData: col,
+            },
           };
 
           // custom cell renderer for geometry data types
