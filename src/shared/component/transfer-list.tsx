@@ -39,8 +39,8 @@ function TransferList({ onChange, ...props }: ITransferListProps) {
   const [leftListValues, setLeftListValues] = useState(props.values[0]);
   const [rightListValues, setRightListValues] = useState(props.values[1]);
 
-  const leftTitle = props.titles[0];
-  const rightTitle = props.titles[1];
+  const leftTitle = useMemo(() => props.titles[0], [props.titles]);
+  const rightTitle = useMemo(() => props.titles[1], [props.titles]);
 
   const onTransferLeftToRight = (value: Value[]) => {
     setLeftListValues((prev) => {
@@ -67,14 +67,18 @@ function TransferList({ onChange, ...props }: ITransferListProps) {
   }, [leftListValues, onChange, rightListValues]);
 
   return (
-    <Group gap={"lg"}>
+    <Group gap={"lg"} wrap="nowrap">
       <List
+        placeholder={props.placeholder}
+        nothingFound={props.nothingFound}
         values={rightListValues}
         title={rightTitle}
         onTransfer={onTransferRightToLeft}
         flipIcons
       />
       <List
+        placeholder={props.placeholder}
+        nothingFound={props.nothingFound}
         values={leftListValues}
         title={leftTitle}
         onTransfer={onTransferLeftToRight}
@@ -88,11 +92,15 @@ function List({
   title,
   flipIcons,
   onTransfer,
+  nothingFound,
+  placeholder,
 }: {
   values: Value[];
   title: string;
   onTransfer: (value: Value[]) => void;
   flipIcons?: boolean;
+  nothingFound: string;
+  placeholder: string;
 }) {
   const [selected, setSelected] = useState<Value[]>([]);
   const [search, setSearch] = useState("");
@@ -112,36 +120,41 @@ function List({
       }}
     >
       <Text size="lg">{title}</Text>
-      <Group style={{ flexDirection: flipIcons ? "row" : "row-reverse" }}>
+      <Stack>
         <TextInput
           value={search}
           onChange={(e) => setSearch(e.currentTarget.value)}
           placeholder={"جستجو"}
           style={{ flexGrow: 1 }}
         />
-        <ActionIcon
-          variant="light"
-          size={"lg"}
-          onClick={() => {
-            onTransfer(selected);
-            setSelected([]);
-          }}
-          disabled={selected.length === 0}
+        <Group
+          style={{ flexDirection: flipIcons ? "row" : "row-reverse" }}
+          justify="flex-end"
         >
-          {flipIcons ? <IconChevronLeft /> : <IconChevronRight />}
-        </ActionIcon>
-        <ActionIcon
-          variant="light"
-          size={"lg"}
-          onClick={() => {
-            onTransfer(values);
-            setSelected([]);
-          }}
-          disabled={values.length === 0}
-        >
-          {flipIcons ? <IconChevronsLeft /> : <IconChevronsRight />}
-        </ActionIcon>
-      </Group>
+          <ActionIcon
+            variant="light"
+            size={"lg"}
+            onClick={() => {
+              onTransfer(selected);
+              setSelected([]);
+            }}
+            disabled={selected.length === 0}
+          >
+            {flipIcons ? <IconChevronLeft /> : <IconChevronRight />}
+          </ActionIcon>
+          <ActionIcon
+            variant="light"
+            size={"lg"}
+            onClick={() => {
+              onTransfer(values);
+              setSelected([]);
+            }}
+            disabled={values.length === 0}
+          >
+            {flipIcons ? <IconChevronsLeft /> : <IconChevronsRight />}
+          </ActionIcon>
+        </Group>
+      </Stack>
       <Paper withBorder p="md" h={256} style={{ overflow: "auto" }}>
         <Stack>
           {filteredValues.map((value) => (
@@ -159,6 +172,16 @@ function List({
               label={value.label}
             />
           ))}
+          {filteredValues.length === 0 &&
+            (search.length === 0 ? (
+              <Text size="sm" c={"gray"}>
+                {placeholder}
+              </Text>
+            ) : (
+              <Text size="sm" c={"gray"}>
+                {nothingFound}
+              </Text>
+            ))}
         </Stack>
       </Paper>
     </Stack>

@@ -9,7 +9,7 @@ import {
   TextInput,
   rem,
 } from "@mantine/core";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import {
   IconLayoutColumns,
@@ -66,10 +66,10 @@ function ColumnsGroupingModalContent({
   }) => void;
   loading: boolean;
 }) {
-  const [columns, setColumns] = useState({
+  const [columns, setColumns] = useState(() => ({
     grouped: initialGroupedCols,
     ungrouped: initialUngroupedCols,
-  });
+  }));
 
   const _groupedColumnsContainerRef = useRef<HTMLDivElement>(null);
 
@@ -165,52 +165,62 @@ function ColumnsGroupingModalContent({
     setIsEditingGroup(true);
   }
 
+  const onTransferListChange = useCallback(
+    (newTLD: [Value[], Value[]]) => {
+      setGroupTransferListData({
+        values: newTLD,
+        titles: groupTransferListData.titles,
+      });
+    },
+    [groupTransferListData.titles],
+  );
+
+  const onFinishEditingGroupColumns = useCallback(() => {
+    const [newGroupedCols, newUngroupedColumns] =
+      groupTransferListData.values as [
+        Value<DatasourceColumn>[],
+        Value<DatasourceColumn>[],
+      ];
+
+    const [editedGroupGroupName] = groupTransferListData.titles;
+
+    const newColumns = {
+      grouped: columns.grouped.map((g) => {
+        if (g.groupName === editedGroupGroupName) {
+          return {
+            groupName: g.groupName,
+            columns: newGroupedCols.map((gc) => gc.context!),
+          };
+        }
+
+        return g;
+      }),
+      ungrouped: newUngroupedColumns.map((gc) => gc.context!),
+    };
+
+    setColumns(newColumns);
+
+    setGroupTransferListData(INITIAL_GROUP_TRANSFER_LIST_DATA);
+
+    setIsEditingGroup(false);
+  }, [
+    columns.grouped,
+    groupTransferListData.titles,
+    groupTransferListData.values,
+  ]);
+
   if (isEditingGroup) {
     return (
       <Stack>
         <TransferList
           nothingFound="ستونی با این اسم پیدا نشد."
           placeholder="ستونی ندارد."
-          onChange={(newTLD) => {
-            setGroupTransferListData({
-              values: newTLD,
-              titles: groupTransferListData.titles,
-            });
-          }}
+          onChange={onTransferListChange}
           values={groupTransferListData.values}
           titles={groupTransferListData.titles}
         />
         <Group>
-          <Button
-            variant="outline"
-            onClick={() => {
-              const [newGroupedCols, newUngroupedColumns] =
-                groupTransferListData.values as [
-                  Value<DatasourceColumn>[],
-                  Value<DatasourceColumn>[],
-                ];
-
-              const [editedGroupGroupName] = groupTransferListData.titles;
-
-              const newColumns = {
-                grouped: columns.grouped.map((g) => {
-                  if (g.groupName === editedGroupGroupName) {
-                    return {
-                      groupName: g.groupName,
-                      columns: newGroupedCols.map((gc) => gc.context!),
-                    };
-                  }
-
-                  return g;
-                }),
-                ungrouped: newUngroupedColumns.map((gc) => gc.context!),
-              };
-
-              setColumns(newColumns);
-
-              setGroupTransferListData(INITIAL_GROUP_TRANSFER_LIST_DATA);
-            }}
-          >
+          <Button variant="outline" onClick={onFinishEditingGroupColumns}>
             بازگشت
           </Button>
         </Group>
