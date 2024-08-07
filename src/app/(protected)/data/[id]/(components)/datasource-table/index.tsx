@@ -98,7 +98,7 @@ function DatasourceTable() {
         onCellEditingStopped={onCellEditingStopped}
         onColumnMoved={onColumnMovedOrPinned}
         onColumnPinned={onColumnMovedOrPinned}
-        // headerHeight={60}
+        headerHeight={80}
       />
     </Stack>
   );
