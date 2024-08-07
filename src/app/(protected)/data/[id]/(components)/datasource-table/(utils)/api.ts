@@ -48,7 +48,13 @@ export async function updateDatasourceColumn({
     headers: getCommonHeaders(),
   };
 
-  await ax.patch(url, body, options);
+  const res = await ax.patch(url, body, options);
+
+  if (res.status >= 200 && res.status < 300) {
+    return { success: true };
+  }
+
+  return { success: false };
 }
 
 export async function exportDatasourceTable({
