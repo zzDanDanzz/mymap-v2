@@ -1,11 +1,14 @@
 import { ax } from "@shared/api/axios-instance";
 import urls from "@shared/api/urls";
 import { getCommonHeaders } from "@shared/api/utils";
-import { Datasource } from "@shared/types/datasource.types";
+import { ODataResponse } from "@shared/types/api.types";
+import { Datasource, DatasourceColumn } from "@shared/types/datasource.types";
 import { downloadThisLink } from "@shared/utils/general";
 import { Column } from "ag-grid-community";
 import { AxiosRequestConfig } from "axios";
 import isEqual from "lodash.isequal";
+import { z } from "zod";
+import { addColumnSchema } from "./schemas";
 
 export async function updateDatasourceRow({
   datasourceId,
@@ -27,6 +30,33 @@ export async function updateDatasourceRow({
   };
 
   await ax.patch(url, body, options);
+}
+
+export async function addDatasourceColumn(
+  datasourceID: string,
+  column: z.infer<typeof addColumnSchema>,
+) {
+  const url = `${urls.editorTables}/${datasourceID}/columns`;
+
+  const body = {
+    columns: [column],
+  };
+
+  const options = {
+    headers: getCommonHeaders(),
+  };
+
+  const res = await ax.post<ODataResponse<DatasourceColumn>>(
+    url,
+    body,
+    options,
+  );
+
+  if (res.status >= 200 && res.status < 300 && res.data?.value?.length > 0) {
+    return { success: true, updatedColumns: res.data };
+  }
+
+  return { success: false };
 }
 
 export async function updateDatasourceColumn({
@@ -105,7 +135,6 @@ export async function updateColumnOrdering({
   columns_ordering: string[];
   currentDatasource: Datasource;
 }) {
-  console.log(3);
   const url = `${urls.datasources}/${currentDatasource.id}`;
 
   const body = {
@@ -121,7 +150,7 @@ export async function updateColumnOrdering({
   await ax.patch(url, body, options);
 }
 
-export async function syncColumnsOrder({
+export async function syncGridColumnsOrderWithApi({
   columns,
   currentDatasource,
 }: {

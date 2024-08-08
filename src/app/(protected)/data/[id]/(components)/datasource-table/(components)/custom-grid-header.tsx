@@ -8,43 +8,18 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import {
-  ColumnDataType,
-  DatasourceColumn,
-} from "@shared/types/datasource.types";
+import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasource-columns";
+import { DatasourceColumn } from "@shared/types/datasource.types";
+import notify from "@shared/utils/toasts";
+import { IconDotsVertical } from "@tabler/icons-react";
 import { CustomHeaderProps } from "ag-grid-react";
 import { useParams } from "next/navigation";
+import React, { useState } from "react";
 import { updateDatasourceColumn } from "../(utils)/api";
-import { IconDotsVertical } from "@tabler/icons-react";
-import { useState } from "react";
-import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasource-columns";
-import React from "react";
-import notify from "@shared/utils/toasts";
-
-const translations = {
-  geography: "جغرافیایی",
-  text: "متنی",
-  numerical: "عددی",
-  date: "تاریخ",
-  etc: "غیره",
-};
-
-const dataTypesByCategory: Record<string, string[]> = {
-  geography: [
-    "point",
-    "linestring",
-    "polygon",
-    "multipoint",
-    "multilinestring",
-    "multipolygon",
-    "geometrycollection",
-    "geometry",
-  ],
-  text: ["string", "text"],
-  numerical: ["int", "double", "real"],
-  date: ["timestamp", "time"],
-  etc: ["uuid", "json", "bool", "attachment"],
-};
+import {
+  DATA_TYPES_BY_CATEGORY,
+  DATA_TYPE_CATEGORIES_TRANSLATIONS,
+} from "@shared/constants/datasource.constants";
 
 function DataTypePickerDropdown({
   dataType,
@@ -85,6 +60,7 @@ function DataTypePickerDropdown({
 
   return (
     <Menu
+      position="bottom-start"
       opened={isMenuOpen}
       onChange={(opened) => {
         if (isMenuOpen && loading) return;
@@ -93,14 +69,7 @@ function DataTypePickerDropdown({
       closeOnItemClick={false}
     >
       <Menu.Target>
-        <Button
-          variant="outline"
-          size="xs"
-          radius="xl"
-          p={0}
-          px={"xs"}
-          color="gray"
-        >
+        <Button variant="outline" size="compact-xs" radius="xl" color="gray">
           {dataType}
         </Button>
       </Menu.Target>
@@ -112,12 +81,17 @@ function DataTypePickerDropdown({
           pos={"relative"}
         >
           <LoadingOverlay visible={loading} />
-          {Object.keys(dataTypesByCategory).map((category, i) => (
+          {Object.keys(DATA_TYPES_BY_CATEGORY).map((category, i) => (
             <React.Fragment key={category}>
-              <Menu.Label>
-                {translations[category as keyof typeof translations]}
-              </Menu.Label>
-              {dataTypesByCategory[category].map((dt) => (
+              <Group gap={0}>
+                <Menu.Label>
+                  {DATA_TYPE_CATEGORIES_TRANSLATIONS[category]}
+                </Menu.Label>
+                <Menu.Divider flex={1} />
+              </Group>
+              {DATA_TYPES_BY_CATEGORY[
+                category as keyof typeof DATA_TYPES_BY_CATEGORY
+              ].map((dt) => (
                 <Menu.Item
                   key={dt}
                   disabled={dt === dataType}
@@ -126,9 +100,6 @@ function DataTypePickerDropdown({
                   {dt}
                 </Menu.Item>
               ))}
-              {i !== Object.keys(dataTypesByCategory).length - 1 && (
-                <Menu.Divider />
-              )}
             </React.Fragment>
           ))}
         </ScrollArea.Autosize>

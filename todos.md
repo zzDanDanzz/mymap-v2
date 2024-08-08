@@ -14,3 +14,6 @@
 - bbox zoom when opening datasource
 - metadata (title, description, etc)
 - option to switch layouts in data source page for example data source only view or map only view or both
+- handling the UI part of sharing things like data sources, services, and views (like the cards have a part at indicates the user is the "owner")
+- using roles and permissions to conditionally render certain parts
+- favicon and title for all pages
