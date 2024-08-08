@@ -2,12 +2,12 @@
 - all the menu buttons in a menu
   - for downld th pdf nds a dfrnt lgc
 - add column and row
-- search
+- ~~search~~
 - reordering
   - col order in export
 - pinning
 - del col
-- show datatype and patch datatype
+- ~~show datatype and patch datatype~~
 - total num of records
 - redirect after login
 - handle columns with special rendering like attachments
@@ -17,3 +17,4 @@
 - handling the UI part of sharing things like data sources, services, and views (like the cards have a part at indicates the user is the "owner")
 - using roles and permissions to conditionally render certain parts
 - favicon and title for all pages
+- ag grid fonts

@@ -5,11 +5,11 @@ import {
 } from "@shared/constants/datasource.constants";
 import { Datasource, DatasourceColumn } from "@shared/types/datasource.types";
 import type { ColDef } from "ag-grid-community";
+import { CustomHeaderProps } from "ag-grid-react";
 import { useMemo } from "react";
+import CustomGridHeader from "../(components)/custom-grid-header";
 import GeomSvgPreview from "../(components)/geom-svg-preview";
 import { useColumnOrdering } from "./use-column-ordering";
-import { CustomHeaderProps } from "ag-grid-react";
-import CustomGridHeader from "../(components)/custom-grid-header";
 
 function useColDefs({
   currentDatasource,
@@ -72,6 +72,13 @@ function useColDefs({
               );
             };
           }
+
+          // custom cell renderer for attachment data type
+          // if (col.data_type === "attachment") {
+          //   colDef.cellRenderer = (props: any) => {
+          //     return <AttachmentsPreview value={props.value} />;
+          //   };
+          // }
 
           // handle grouping columns
           if (col.group_name) {

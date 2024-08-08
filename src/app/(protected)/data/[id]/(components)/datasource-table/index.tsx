@@ -2,11 +2,11 @@ import "ag-grid-community/styles/ag-grid.css"; // Core grid CSS, always needed
 import "ag-grid-community/styles/ag-theme-alpine.css"; // Optional theme CSS
 
 import { AG_GRID_LOCALE_IR } from "@ag-grid-community/locale";
-import { Button, Group, Pagination, Stack, TextInput } from "@mantine/core";
-import CenteredLoader from "@shared/component/centered-loader";
+import { Group, Pagination, Stack, TextInput } from "@mantine/core";
 import useDatasource from "@shared/hooks/swr/datasources/use-datasource";
 import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasource-columns";
 import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-rows";
+import { IconSearch } from "@tabler/icons-react";
 import type {
   CellEditingStoppedEvent,
   ColumnMovedEvent,
@@ -16,23 +16,25 @@ import { AgGridReact } from "ag-grid-react";
 import { useParams } from "next/navigation";
 import { useCallback, useState } from "react";
 import ActionButtons from "./(components)/action-buttons";
+import AddDataButtons from "./(components)/add-data-buttons";
+import useColDefs from "./(hooks)/use-col-defs";
 import {
   syncGridColumnsOrderWithApi,
   updateDatasourceRow,
 } from "./(utils)/api";
-import useColDefs from "./(hooks)/use-col-defs";
-import DatasourceSearch from "./(components)/datasource-search";
-import AddDataButtons from "./(components)/add-data-buttons";
 
 function DatasourceTable() {
   const { id } = useParams<{ id: string }>();
 
+  const [searchText, setSearchText] = useState("");
+
   const { datasourceColumns, datasourceColumnsIsLoading } =
     useDatasourceColumns({ id });
 
-  const { datasourceRows, datasourceRowsIsLoading, totalPageCount } =
+  const { datasourceRows, datasourceRowsIsValidating, totalPageCount } =
     useDatasourceRows({
       id,
+      search: searchText,
     });
 
   const { datasource, datasourceMutate } = useDatasource({ id });
@@ -87,20 +89,22 @@ function DatasourceTable() {
 
   const [currentPage, setCurrentPage] = useState(1);
 
-  if (datasourceColumnsIsLoading || datasourceRowsIsLoading) {
-    return <CenteredLoader />;
-  }
-
   return (
     <Stack h={"100%"} p={"md"}>
       <title>{datasource?.name}</title>
-      <Group>
+      <Group justify="space-between">
+        <TextInput
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          placeholder="جستجو"
+          rightSection={<IconSearch />}
+        />
         <ActionButtons />
-        <DatasourceSearch />
       </Group>
       <AgGridReact
         localeText={AG_GRID_LOCALE_IR}
         className="ag-theme-alpine"
+        loading={datasourceRowsIsValidating || datasourceColumnsIsLoading}
         enableRtl={true}
         rowData={datasourceRows}
         columnDefs={colDefs}

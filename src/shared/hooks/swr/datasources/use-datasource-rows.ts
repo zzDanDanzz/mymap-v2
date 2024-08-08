@@ -1,3 +1,4 @@
+import { useDebouncedValue } from "@mantine/hooks";
 import { ax } from "@shared/api/axios-instance";
 import urls from "@shared/api/urls";
 import { getCommonHeaders } from "@shared/api/utils";
@@ -19,20 +20,25 @@ export function useDatasourceRows({
   id,
   page = 1,
   rowsPerPage = DEFAULT_ROWS_PER_PAGE,
+  search,
 }: {
   id: string;
   page?: number;
   rowsPerPage?: number;
+  search?: string;
 }) {
+  const [debouncedSearch] = useDebouncedValue(search, 500);
+
   const qs = useMemo(() => {
     return queryString.stringify(
       {
         $top: rowsPerPage,
         $skip: page === 1 ? null : (page - 1) * rowsPerPage,
+        $search: debouncedSearch,
       },
-      { skipNull: true },
+      { skipNull: true, skipEmptyString: true },
     );
-  }, [page, rowsPerPage]);
+  }, [debouncedSearch, page, rowsPerPage]);
 
   const { data, error, isLoading, isValidating, mutate } = useSWRImmutable(
     `${urls.editorTables}/${id}/rows?${qs}`,
