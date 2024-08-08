@@ -18,8 +18,7 @@ export default function RouteProtectionWrapper({
 }: PropsWithChildren) {
   const { logOut } = useLogout();
   const [isCreatingMyApp, setIsCreatingMyApp] = useState(false);
-  const { userIsLoading, userData, userIsValidating } =
-    useUserProfile();
+  const { userIsLoading, userData, userIsValidating } = useUserProfile();
 
   const hasAttemptedMyAppCreationRef = useRef(false);
 
@@ -41,6 +40,7 @@ export default function RouteProtectionWrapper({
     const sessionToken = getSessionToken();
 
     if (!sessionToken) {
+      console.log("no session token");
       logOut();
       return;
     }
@@ -50,6 +50,7 @@ export default function RouteProtectionWrapper({
     }
 
     if (userData && !userData.id) {
+      console.log("no user id");
       logOut();
       return;
     }
@@ -64,7 +65,7 @@ export default function RouteProtectionWrapper({
   }, [handleRouteProtection]);
 
   if (userIsLoading || !userData?.id || isCreatingMyApp) {
-    return <CenteredLoader />
+    return <CenteredLoader />;
   }
 
   return <>{children}</>;

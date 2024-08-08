@@ -1,126 +1,110 @@
 import "ag-grid-community/styles/ag-grid.css"; // Core grid CSS, always needed
 import "ag-grid-community/styles/ag-theme-alpine.css"; // Optional theme CSS
 
-import { AG_GRID_LOCALE_IR } from "@ag-grid-community/locale";
-import {
-  Group,
-  Pagination,
-  Stack,
-  TextInput,
-  UnstyledButton,
-} from "@mantine/core";
+import { Group, Stack, Text, TextInput, UnstyledButton } from "@mantine/core";
 import useDatasource from "@shared/hooks/swr/datasources/use-datasource";
 import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasource-columns";
 import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-rows";
+import useCreateQueryString from "@shared/hooks/use-create-query-string";
 import { IconSearch, IconSquareX } from "@tabler/icons-react";
-import type {
-  CellEditingStoppedEvent,
-  ColumnMovedEvent,
-  ColumnPinnedEvent,
-} from "ag-grid-community";
-import { AgGridReact } from "ag-grid-react";
 import {
   useParams,
   usePathname,
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import ActionButtons from "./(components)/action-buttons";
 import AddDataButtons from "./(components)/add-data-buttons";
-import useColDefs from "./(hooks)/use-col-defs";
-import {
-  syncGridColumnsOrderWithApi,
-  updateDatasourceRow,
-} from "./(utils)/api";
-import useCreateQueryString from "@shared/hooks/use-create-query-string";
+import Grid from "./(components)/grid";
+import { usePrevious } from "@mantine/hooks";
 
-function useSyncSearchTextWithUrl({ searchText }: { searchText: string }) {
+function useSyncStateWithUrl({
+  state,
+  paramName,
+}: {
+  state: string | number;
+  paramName: string;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const createQueryString = useCreateQueryString();
 
-  // sync search text with url
   useEffect(() => {
-    if (searchText) {
-      router.push(pathname + "?" + createQueryString("search", searchText));
-    } else {
-      router.push(pathname);
-    }
-  }, [createQueryString, pathname, router, searchText]);
+    router.push(pathname + "?" + createQueryString(paramName, String(state)));
+  }, [createQueryString, paramName, pathname, router, state]);
 
   return null;
 }
+
+const getIsPageInvalid = ({
+  currentPage,
+  totalPageCount,
+}: {
+  currentPage: number | "";
+  totalPageCount: number;
+}) => {
+  return (
+    typeof currentPage === "number" &&
+    currentPage >= 1 &&
+    currentPage <= totalPageCount
+  );
+};
 
 export function DatasourceTable() {
   const { id } = useParams<{ id: string }>();
 
   const params = useSearchParams();
 
+  const [currentPage, setCurrentPage] = useState<number | "">(
+    Number(params.get("page") ?? 1),
+  );
+
+  const [validatedCurrentPage, setValidatedCurrentPage] = useState<number>(1);
+
   const [searchText, setSearchText] = useState(params.get("search") ?? "");
 
-  useSyncSearchTextWithUrl({ searchText });
-
-  const { datasourceColumns, datasourceColumnsIsLoading } =
-    useDatasourceColumns({ id });
-
-  const { datasourceRows, datasourceRowsIsValidating, totalPageCount } =
-    useDatasourceRows({
-      id,
-      search: searchText,
-    });
-
-  const { datasource, datasourceMutate } = useDatasource({ id });
-
-  const colDefs = useColDefs({
-    datasourceColumns,
-    currentDatasource: datasource,
+  useSyncStateWithUrl({
+    state: currentPage === 1 ? "" : currentPage,
+    paramName: "page",
   });
 
-  const onCellEditingStopped = useCallback(
-    async (event: CellEditingStoppedEvent) => {
-      const _columnField = event.colDef.field;
+  useSyncStateWithUrl({ state: searchText, paramName: "search" });
 
-      if (!_columnField) return;
+  // reset page to 1 when search text is changed
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchText, setCurrentPage]);
 
-      const _cellData = event.data[_columnField];
+  const {
+    datasourceRows,
+    datasourceRowsIsValidating,
+    totalPageCount,
+    totalCount,
+  } = useDatasourceRows({
+    id,
+    search: searchText,
+    page: validatedCurrentPage,
+  });
 
-      event.api.setGridOption("loading", true);
+  useEffect(() => {
+    const isValid = getIsPageInvalid({
+      currentPage,
+      totalPageCount: totalPageCount,
+    });
 
-      await updateDatasourceRow({
-        datasourceId: id,
-        rowId: event.data.id,
-        cellColumnName: _columnField,
-        updatedCellData: _cellData,
-      });
+    if (isValid) {
+      setValidatedCurrentPage(currentPage as number);
+    }
+  }, [currentPage, totalPageCount]);
 
-      event.api.setGridOption("loading", false);
-    },
-    [id],
-  );
+  const { datasource } = useDatasource({ id });
 
-  const onColumnMovedOrPinned = useCallback(
-    async (event: ColumnMovedEvent | ColumnPinnedEvent) => {
-      if (typeof (event as ColumnMovedEvent)?.finished === "boolean") {
-        // if finished is false then it means the user is still dragging the column (only for ColumnMovedEvent)
-        if (!(event as ColumnMovedEvent).finished) return;
-      }
+  const { datasourceColumnsIsLoading } = useDatasourceColumns({ id });
 
-      event.api.setGridOption("loading", true);
+  const prevTotalPageCount = usePrevious(totalPageCount);
 
-      await syncGridColumnsOrderWithApi({
-        columns: event.api.getAllGridColumns(),
-        currentDatasource: datasource,
-      });
-
-      await datasourceMutate();
-
-      event.api.setGridOption("loading", false);
-    },
-    [datasource, datasourceMutate],
-  );
-
-  const [currentPage, setCurrentPage] = useState(1);
+  const prevTotalCount = usePrevious(totalCount);
 
   return (
     <Stack h={"100%"} p={"md"}>
@@ -145,31 +129,75 @@ export function DatasourceTable() {
         />
         <ActionButtons />
       </Group>
-      <AgGridReact
-        localeText={AG_GRID_LOCALE_IR}
-        className="ag-theme-alpine"
+
+      <Grid
         loading={datasourceRowsIsValidating || datasourceColumnsIsLoading}
-        enableRtl={true}
         rowData={datasourceRows}
-        columnDefs={colDefs}
-        onCellEditingStopped={onCellEditingStopped}
-        onColumnMoved={onColumnMovedOrPinned}
-        onColumnPinned={onColumnMovedOrPinned}
-        headerHeight={80}
       />
+
       <Group justify={"space-between"}>
-        {totalPageCount > 1 && (
-          <Pagination
-            total={totalPageCount}
-            value={currentPage}
-            onChange={setCurrentPage}
-            ff={"IRANSansWebFa"}
-          />
-        )}
+        <Text ff={"IRANSansWebFa"}>
+          رکوردها: {prevTotalCount && !totalCount ? prevTotalCount : totalCount}
+        </Text>
+
+        <MinimalPagination
+          totalPageCount={
+            prevTotalPageCount && prevTotalPageCount > 0 && totalPageCount === 0
+              ? prevTotalPageCount
+              : totalPageCount
+          }
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
+        />
 
         <AddDataButtons />
       </Group>
     </Stack>
+  );
+}
+
+function MinimalPagination({
+  totalPageCount,
+  currentPage,
+  setCurrentPage,
+}: {
+  totalPageCount: number;
+  currentPage: number | "";
+  setCurrentPage: React.Dispatch<React.SetStateAction<number | "">>;
+}) {
+  return (
+    <Group gap={"xs"}>
+      <Text ff={"IRANSansWebFa"}>{totalPageCount}</Text>
+
+      <Text>/</Text>
+
+      <TextInput
+        disabled={totalPageCount === 1}
+        styles={{ input: { fontFamily: "IRANSansWebFa" } }}
+        w={64}
+        value={currentPage}
+        onChange={(e) => {
+          const value = e.target.value;
+
+          // allow empty string
+          if (value === "") {
+            setCurrentPage(value);
+            return;
+          }
+
+          const isValid = /^\d+$/.test(value);
+
+          // regex test to allow only digits
+          if (isValid) {
+            setCurrentPage(Number(value));
+          }
+        }}
+        onBlur={() => {
+          // if empty string then set current page to 1
+          if (currentPage === "") setCurrentPage(1);
+        }}
+      />
+    </Group>
   );
 }
 

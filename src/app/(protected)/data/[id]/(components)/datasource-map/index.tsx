@@ -20,8 +20,13 @@ function SourcesAndLayers({ geojsonData }: { geojsonData: FeatureCollection }) {
   // zoom to bbox of fetched rows of selected geometry column
   useEffect(() => {
     if (geojsonData && map) {
-      const bbox = getBbox(geojsonData) as [number, number, number, number];
-      bbox && map.fitBounds(bbox, { padding: 200 });
+      try {
+        const bbox = getBbox(geojsonData) as [number, number, number, number];
+        console.log(bbox);
+        bbox && map.fitBounds(bbox, { padding: 200 });
+      } catch (error) {
+        console.error(error);
+      }
     }
   }, [geojsonData, map]);
 

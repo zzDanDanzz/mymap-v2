@@ -18,3 +18,4 @@
 - using roles and permissions to conditionally render certain parts
 - favicon and title for all pages
 - ag grid fonts
+- Make it responsive
