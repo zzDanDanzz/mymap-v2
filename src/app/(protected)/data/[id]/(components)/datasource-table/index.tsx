@@ -2,19 +2,30 @@ import "ag-grid-community/styles/ag-grid.css"; // Core grid CSS, always needed
 import "ag-grid-community/styles/ag-theme-alpine.css"; // Optional theme CSS
 
 import { AG_GRID_LOCALE_IR } from "@ag-grid-community/locale";
-import { Group, Pagination, Stack, TextInput } from "@mantine/core";
+import {
+  Group,
+  Pagination,
+  Stack,
+  TextInput,
+  UnstyledButton,
+} from "@mantine/core";
 import useDatasource from "@shared/hooks/swr/datasources/use-datasource";
 import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasource-columns";
 import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-rows";
-import { IconSearch } from "@tabler/icons-react";
+import { IconSearch, IconSquareX } from "@tabler/icons-react";
 import type {
   CellEditingStoppedEvent,
   ColumnMovedEvent,
   ColumnPinnedEvent,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
-import { useParams } from "next/navigation";
-import { useCallback, useState } from "react";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import ActionButtons from "./(components)/action-buttons";
 import AddDataButtons from "./(components)/add-data-buttons";
 import useColDefs from "./(hooks)/use-col-defs";
@@ -22,11 +33,33 @@ import {
   syncGridColumnsOrderWithApi,
   updateDatasourceRow,
 } from "./(utils)/api";
+import useCreateQueryString from "@shared/hooks/use-create-query-string";
 
-function DatasourceTable() {
+function useSyncSearchTextWithUrl({ searchText }: { searchText: string }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const createQueryString = useCreateQueryString();
+
+  // sync search text with url
+  useEffect(() => {
+    if (searchText) {
+      router.push(pathname + "?" + createQueryString("search", searchText));
+    } else {
+      router.push(pathname);
+    }
+  }, [createQueryString, pathname, router, searchText]);
+
+  return null;
+}
+
+export function DatasourceTable() {
   const { id } = useParams<{ id: string }>();
 
-  const [searchText, setSearchText] = useState("");
+  const params = useSearchParams();
+
+  const [searchText, setSearchText] = useState(params.get("search") ?? "");
+
+  useSyncSearchTextWithUrl({ searchText });
 
   const { datasourceColumns, datasourceColumnsIsLoading } =
     useDatasourceColumns({ id });
@@ -97,7 +130,18 @@ function DatasourceTable() {
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           placeholder="جستجو"
-          rightSection={<IconSearch />}
+          rightSection={
+            searchText ? (
+              <UnstyledButton
+                onClick={() => setSearchText("")}
+                display={"flex"}
+              >
+                <IconSquareX />
+              </UnstyledButton>
+            ) : (
+              <IconSearch />
+            )
+          }
         />
         <ActionButtons />
       </Group>

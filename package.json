@@ -18,8 +18,8 @@
     "@mapbox/mapbox-gl-draw": "^1.4.3",
     "@persian-tools/persian-tools": "^3.5.2",
     "@tabler/icons-react": "^3.4.0",
-    "@turf/boolean-valid": "^6.5.0",
     "@turf/helpers": "^7.0.0",
+    "@turf/turf": "^7.0.0",
     "ag-grid-community": "^32.0.2",
     "ag-grid-react": "^32.0.2",
     "axios": "^1.6.8",
@@ -43,6 +43,7 @@
   },
   "devDependencies": {
     "@types/d3": "^7.4.3",
+    "@types/geojson": "^7946.0.14",
     "@types/lodash.difference": "^4.5.9",
     "@types/lodash.groupby": "^4.6.9",
     "@types/lodash.isequal": "^4.5.8",
