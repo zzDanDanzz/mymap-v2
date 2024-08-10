@@ -1,4 +1,5 @@
-- pagination
+- pagination (table)
+- pagination (datasources list)
 - all the menu buttons in a menu
   - for downld th pdf nds a dfrnt lgc
 - add column and row

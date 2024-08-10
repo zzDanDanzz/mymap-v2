@@ -1,6 +1,18 @@
 "use client";
 
-import { Paper, Select, useMantineTheme } from "@mantine/core";
+import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
+import "mapbox-gl/dist/mapbox-gl.css";
+
+import {
+  Box,
+  Flex,
+  Paper,
+  Select,
+  Switch,
+  useMantineTheme,
+} from "@mantine/core";
+import { useDebouncedValue, useResizeObserver } from "@mantine/hooks";
+import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import urls from "@shared/api/urls";
 import { GEOMETRY_DATA_TYPES } from "@shared/constants/datasource.constants";
 import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasource-columns";
@@ -10,25 +22,109 @@ import { feature, featureCollection } from "@turf/helpers";
 import { bbox as getBbox } from "@turf/turf";
 import type { FeatureCollection } from "geojson";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import Map, { Layer, Source, useMap } from "react-map-gl/maplibre";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Map, {
+  ControlPosition,
+  Layer,
+  MapboxMap,
+  Source,
+  useControl,
+  useMap,
+} from "react-map-gl";
+import getGlDrawStyles from "./(utils)/gl-draw-styles";
 
-function SourcesAndLayers({ geojsonData }: { geojsonData: FeatureCollection }) {
-  const { current: map } = useMap();
+type ControlOptions = {
+  position?: ControlPosition;
+};
+
+function DrawModeWithReactMapGl({
+  geojsonData,
+  isEditingGeom,
+}: {
+  geojsonData: FeatureCollection;
+  isEditingGeom: boolean;
+}) {
+  const theme = useMantineTheme();
+  const { current: mapRef } = useMap();
+
+  const createDrawControlInstance = useCallback(() => {
+    return new MapboxDraw({
+      defaultMode: "simple_select",
+      displayControlsDefault: false,
+      styles: getGlDrawStyles({
+        fillColor: theme.colors.orange[4],
+        outlineColor: theme.colors.gray[1],
+      }),
+    });
+  }, [theme.colors.gray, theme.colors.orange]);
+
+  const onAddControlToMap = useCallback(() => {
+    // props.onCreate && map.on("draw.create", props.onCreate);
+    // props.onUpdate && map.on("draw.update", props.onUpdate);
+    // props.onDelete && map.on("draw.delete", props.onDelete);
+  }, []);
+
+  const onRemoveControlFromMap = useCallback(() => {
+    // props.onCreate && map.off("draw.create", props.onCreate);
+    // props.onUpdate && map.off("draw.update", props.onUpdate);
+    // props.onDelete && map.off("draw.delete", props.onDelete);
+  }, []);
+
+  const controlOptions = useMemo(() => {
+    return {
+      position: "bottom-right",
+    } as ControlOptions;
+  }, []);
+
+  const draw: MapboxDraw | undefined = useControl<any>(
+    createDrawControlInstance,
+    onAddControlToMap,
+    onRemoveControlFromMap,
+    controlOptions,
+  );
+
+  // add features to gl-draw if editing geom
+  useEffect(() => {
+    if (isEditingGeom && geojsonData && draw && mapRef?.hasControl(draw)) {
+      draw.add(geojsonData);
+
+      return () => {
+        if (draw && mapRef?.hasControl(draw)) {
+          draw?.deleteAll();
+        }
+      };
+    }
+  }, [draw, geojsonData, isEditingGeom, mapRef]);
+
+  return null;
+}
+
+function GeomLayer({
+  geojsonData,
+  isEditingGeom,
+}: {
+  geojsonData: FeatureCollection;
+  isEditingGeom: boolean;
+}) {
+  const { current: mapRef } = useMap();
   const theme = useMantineTheme();
 
   // zoom to bbox of fetched rows of selected geometry column
   useEffect(() => {
-    if (geojsonData && map) {
+    if (geojsonData && mapRef) {
       try {
         const bbox = getBbox(geojsonData) as [number, number, number, number];
         console.log(bbox);
-        bbox && map.fitBounds(bbox, { padding: 200 });
+        bbox && mapRef.fitBounds(bbox, { padding: 200 });
       } catch (error) {
         console.error(error);
       }
     }
-  }, [geojsonData, map]);
+  }, [geojsonData, mapRef]);
+
+  if (isEditingGeom) {
+    return null;
+  }
 
   return (
     <Source data={geojsonData} type="geojson">
@@ -58,6 +154,7 @@ function SourcesAndLayers({ geojsonData }: { geojsonData: FeatureCollection }) {
           "line-width": 3,
           "line-opacity": 0.75,
         }}
+        filter={["==", "$type", "LineString"]}
       />
     </Source>
   );
@@ -102,39 +199,104 @@ function DatasourceMap({ id }: { id: string }) {
     return featureCollection(geoms);
   }, [datasourceRows, selectedGeomColumn]);
 
-  return (
-    <Map
-      initialViewState={{
-        longitude: 51.4015,
-        latitude: 35.6425,
-        zoom: 12,
-      }}
-      mapStyle={urls.mapStyles["xyz-style"]}
-      transformRequest={(url) => {
-        return {
-          url,
-          headers: {
-            "x-api-key": getUserXApiKey(),
-          },
-        };
-      }}
-    >
-      {geojsonData && <SourcesAndLayers geojsonData={geojsonData} />}
+  const [isEditingGeom, setIsEditingGeom] = useState(false);
 
-      {(geometryColumns ?? []).length > 0 && (
-        <Paper pos={"absolute"} top={10} left={10} p={"sm"} withBorder>
-          <Select
-            size="xs"
-            label="نمایش ستون ژئومتری"
-            defaultValue={geometryColumns?.[0].name}
-            data={geometryColumns?.map(({ name }) => ({
-              value: name,
-              label: name,
-            }))}
+  const theme = useMantineTheme();
+
+  // const drawRef = useRef<MapboxDraw>();
+
+  const mapRef = useRef<MapboxMap>();
+
+  const [mapContainerRef, mapContainerRect] = useResizeObserver();
+
+  const debouncedMapContainerRect = useDebouncedValue(mapContainerRect, 500);
+
+  // resize map on container resize
+  useEffect(() => {
+    if (mapRef.current) {
+      mapRef.current.resize();
+    }
+  }, [debouncedMapContainerRect]);
+
+  return (
+    <Box ref={mapContainerRef} h={"100%"}>
+      <Map
+        initialViewState={{
+          longitude: 51.4015,
+          latitude: 35.6425,
+          zoom: 12,
+        }}
+        mapStyle={urls.mapStyles["xyz-style"]}
+        onLoad={(e) => {
+          mapRef.current = e.target;
+        }}
+        transformRequest={(url) => {
+          return {
+            url,
+            headers: {
+              "x-api-key": getUserXApiKey(),
+            },
+          };
+        }}
+      >
+        {geojsonData && (
+          <GeomLayer geojsonData={geojsonData} isEditingGeom={isEditingGeom} />
+        )}
+
+        {isEditingGeom && geojsonData && (
+          <DrawModeWithReactMapGl
+            geojsonData={geojsonData}
+            isEditingGeom={isEditingGeom}
           />
-        </Paper>
-      )}
-    </Map>
+        )}
+        {/* {isEditingGeom && ( */}
+        {/*   <DrawControl */}
+        {/*     position="bottom-right" */}
+        {/*     // displayControlsDefault={false} */}
+        {/*     controls={{}} */}
+        {/*     // styles={getGlDrawStyles({ */}
+        {/*     //   orange: theme.colors.orange[4], */}
+        {/*     //   blue: theme.colors.blue[4], */}
+        {/*     //   white: theme.colors.gray[1], */}
+        {/*     //   sizeMultiplier: 2, */}
+        {/*     // })} */}
+        {/*     defaultMode="simple_select" */}
+        {/*     drawRef={drawRef} */}
+        {/**/}
+        {/*   /> */}
+        {/* )} */}
+        {(geometryColumns ?? []).length > 0 && (
+          <Flex
+            pos={"absolute"}
+            top={10}
+            left={10}
+            align="flex-start"
+            direction={"row-reverse"}
+            gap={"md"}
+          >
+            <Paper p={"sm"} withBorder>
+              <Select
+                size="xs"
+                label="نمایش ستون ژئومتری"
+                defaultValue={geometryColumns?.[0].name}
+                data={geometryColumns?.map(({ name }) => ({
+                  value: name,
+                  label: name,
+                }))}
+              />
+            </Paper>
+
+            <Paper p={"sm"} withBorder>
+              <Switch
+                label="ویرایش"
+                checked={isEditingGeom}
+                onChange={(e) => setIsEditingGeom(e.currentTarget.checked)}
+              />
+            </Paper>
+          </Flex>
+        )}
+      </Map>
+    </Box>
   );
 }
 

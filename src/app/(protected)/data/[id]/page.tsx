@@ -1,19 +1,23 @@
 "use client";
 
-import "maplibre-gl/dist/maplibre-gl.css";
-
 import { Anchor, Breadcrumbs, Stack, Text, em } from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
+import { useMediaQuery, useResizeObserver } from "@mantine/hooks";
 import useDatasource from "@shared/hooks/swr/datasources/use-datasource";
 import { Provider } from "jotai";
 import Link from "next/link";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import DatasourceMap from "./(components)/datasource-map";
 import DatasourceTable from "./(components)/datasource-table";
+import React from "react";
 
 function Page({ params }: { params: { id: string } }) {
   const isMobile = useMediaQuery(`(max-width: ${em(750)})`);
+  // const [ref, rect] = useResizeObserver();
   const { datasource } = useDatasource({ id: params.id });
+
+  // React.useEffect(() => {
+  //   console.log({ rect });
+  // }, [rect]);
 
   return (
     <Provider>

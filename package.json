@@ -31,7 +31,7 @@
     "lodash.isequal": "^4.5.0",
     "lodash.pullall": "^4.2.0",
     "mantine-form-zod-resolver": "^1.1.0",
-    "maplibre-gl": "^4.3.2",
+    "mapbox-gl": "^1.13.3",
     "next": "14.2.3",
     "query-string": "^9.0.0",
     "react": "^18",
