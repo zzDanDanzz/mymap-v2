@@ -12,12 +12,7 @@ import React from "react";
 
 function Page({ params }: { params: { id: string } }) {
   const isMobile = useMediaQuery(`(max-width: ${em(750)})`);
-  // const [ref, rect] = useResizeObserver();
   const { datasource } = useDatasource({ id: params.id });
-
-  // React.useEffect(() => {
-  //   console.log({ rect });
-  // }, [rect]);
 
   return (
     <Provider>

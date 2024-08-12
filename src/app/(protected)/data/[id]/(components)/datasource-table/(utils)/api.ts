@@ -10,28 +10,6 @@ import isEqual from "lodash.isequal";
 import { z } from "zod";
 import { addColumnSchema } from "./schemas";
 
-export async function updateDatasourceRow({
-  datasourceId,
-  rowId,
-  updatedCellData,
-  cellColumnName,
-}: {
-  datasourceId: string;
-  rowId: string;
-  cellColumnName: string;
-  updatedCellData: unknown;
-}) {
-  const url = `${urls.editorTables}/${datasourceId}/rows/${rowId}`;
-
-  const body = { data: { [cellColumnName]: updatedCellData } };
-
-  const options = {
-    headers: getCommonHeaders(),
-  };
-
-  await ax.patch(url, body, options);
-}
-
 export async function addDatasourceColumn(
   datasourceID: string,
   column: z.infer<typeof addColumnSchema>,
