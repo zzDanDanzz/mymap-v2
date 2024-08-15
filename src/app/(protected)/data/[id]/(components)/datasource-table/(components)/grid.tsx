@@ -12,10 +12,8 @@ import { useCallback } from "react";
 
 import { DatasourceRow } from "@shared/types/datasource.types";
 import useColDefs from "../(hooks)/use-col-defs";
-import {
-  updateDatasourceRow,
-  syncGridColumnsOrderWithApi,
-} from "../(utils)/api";
+import { syncGridColumnsOrderWithApi } from "../(utils)/api";
+import { updateDatasourceRow } from "@/data/[id]/(utils)/api";
 
 function Grid({
   rowData,

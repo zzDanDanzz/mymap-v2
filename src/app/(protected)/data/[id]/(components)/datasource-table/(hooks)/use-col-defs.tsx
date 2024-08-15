@@ -5,11 +5,12 @@ import {
 } from "@shared/constants/datasource.constants";
 import { Datasource, DatasourceColumn } from "@shared/types/datasource.types";
 import type { ColDef } from "ag-grid-community";
-import { CustomHeaderProps } from "ag-grid-react";
+import { CustomCellRendererProps, CustomHeaderProps } from "ag-grid-react";
 import { useMemo } from "react";
 import CustomGridHeader from "../(components)/custom-grid-header";
-import GeomSvgPreview from "../(components)/geom-svg-preview";
+import GeomSvgPreview from "../(components)/customer-cell-renderers/geom-svg-preview";
 import { useColumnOrdering } from "./use-column-ordering";
+import AttachmentPreview from "../(components)/customer-cell-renderers/attachment-preview";
 
 function useColDefs({
   currentDatasource,
@@ -63,7 +64,9 @@ function useColDefs({
 
           // custom cell renderer for geometry data types
           if (GEOMETRY_DATA_TYPES.includes(col.data_type)) {
-            colDef.cellRenderer = (props: any) => {
+            colDef.editable = false;
+
+            colDef.cellRenderer = (props: CustomCellRendererProps) => {
               return (
                 <GeomSvgPreview
                   value={props.value}
@@ -74,11 +77,16 @@ function useColDefs({
           }
 
           // custom cell renderer for attachment data type
-          // if (col.data_type === "attachment") {
-          //   colDef.cellRenderer = (props: any) => {
-          //     return <AttachmentsPreview value={props.value} />;
-          //   };
-          // }
+          if (col.data_type === "attachment") {
+            colDef.editable = false;
+
+            colDef.cellRenderer = (props: CustomCellRendererProps) => {
+              console.log(props);
+              return (
+                <AttachmentPreview cellData={props.value} columnId={col.name} />
+              );
+            };
+          }
 
           // handle grouping columns
           if (col.group_name) {
