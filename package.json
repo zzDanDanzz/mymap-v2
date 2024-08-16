@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@ag-grid-community/locale": "^32.0.2",
+    "@hello-pangea/dnd": "^16.6.0",
     "@mantine/core": "^7.8.1",
     "@mantine/form": "^7.4.2",
     "@mantine/hooks": "^7.8.1",
@@ -35,7 +36,6 @@
     "next": "14.2.3",
     "query-string": "^9.0.0",
     "react": "^18",
-    "react-beautiful-dnd": "^13.1.1",
     "react-dom": "^18",
     "react-map-gl": "^7.1.7",
     "react-resizable-panels": "^2.0.19",
