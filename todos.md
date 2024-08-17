@@ -20,3 +20,4 @@
 - favicon and title for all pages
 - ag grid fonts
 - Make it responsive
+- when adding a new column: need to handle my default for a different data types
