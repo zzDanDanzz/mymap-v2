@@ -14,9 +14,9 @@ import { getUserXApiKey } from "@shared/utils/local-storage";
 import { IconPlus } from "@tabler/icons-react";
 import { useState } from "react";
 // @hello-pangea/dnd is a fork of react-beautiful-dnd that works with react 18
-import UploadAttachments from "./upload-attachments";
 import AttachmentEditor from "./attachments-editor";
-import { Attachment } from "./types";
+import { Attachment } from "../types";
+import UploadAttachments from "../upload-attachments";
 
 function EmptyAttachmentCell({ onAdd }: { onAdd: () => void }) {
   const [showAddButton, setShowAddButton] = useState(false);
@@ -64,7 +64,7 @@ function AttachmentEditorDrawer(
 function UploadAttachmentsModal(props: Pick<ModalProps, "opened" | "onClose">) {
   return (
     <Modal title="بارگذاری فایل جدید" {...props}>
-      <UploadAttachments />
+      <UploadAttachments onCancel={props.onClose} />
     </Modal>
   );
 }

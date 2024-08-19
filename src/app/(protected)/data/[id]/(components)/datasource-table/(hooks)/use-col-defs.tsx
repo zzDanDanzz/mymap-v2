@@ -10,7 +10,7 @@ import { useMemo } from "react";
 import CustomGridHeader from "../(components)/custom-grid-header";
 import GeomSvgPreview from "../(components)/customer-cell-renderers/geom-svg-preview";
 import { useColumnOrdering } from "./use-column-ordering";
-import AttachmentPreview from "../(components)/customer-cell-renderers/attachment-preview";
+import AttachmentPreview from "../(components)/customer-cell-renderers/attachment/attachment-preview";
 
 function useColDefs({
   currentDatasource,

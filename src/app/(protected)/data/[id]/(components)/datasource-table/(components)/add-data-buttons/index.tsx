@@ -124,7 +124,6 @@ function AddDataButtons() {
       <Modal
         opened={isAddColumnModalOpen}
         onClose={() => setIsAddColumnModalOpen(false)}
-        centered
         title="افزودن ستون"
       >
         <AddColumn onSuccess={() => setIsAddColumnModalOpen(false)} />

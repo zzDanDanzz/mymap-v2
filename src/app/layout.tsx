@@ -25,8 +25,15 @@ export default function RootLayout({
       <body>
         <MantineProvider
           theme={{
-            fontFamily: 'IRANSansWeb',
-            primaryColor: 'pink'
+            fontFamily: "IRANSansWeb",
+            primaryColor: "pink",
+            components: {
+              Modal: {
+                defaultProps: {
+                  centered: true,
+                },
+              },
+            },
           }}
         >
           <Notifications />

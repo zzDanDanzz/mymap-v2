@@ -122,7 +122,6 @@ function ColumnsGrouping() {
           withCloseButton={false}
           closeOnClickOutside={false}
           closeOnEscape={false}
-          centered
         >
           <ColumnsGroupingModalContent
             initialGroupedCols={initialData.initialGroupedCols!}

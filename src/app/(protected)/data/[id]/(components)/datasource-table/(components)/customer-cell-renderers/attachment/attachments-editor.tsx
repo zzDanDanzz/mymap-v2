@@ -14,12 +14,15 @@ import {
   Badge,
   Group,
   Paper,
+  Modal,
+  ModalProps,
 } from "@mantine/core";
-import { useListState } from "@mantine/hooks";
+import { useDisclosure, useListState } from "@mantine/hooks";
 import { MAPIR_API_BASE } from "@shared/config";
 import { getUserXApiKey } from "@shared/utils/local-storage";
 import { IconGripVertical, IconUpload } from "@tabler/icons-react";
-import { Attachment } from "./types";
+import { Attachment } from "../types";
+import UploadAttachments from "../upload-attachments";
 
 function DraggableAttachmentCard({
   attachment,
@@ -68,11 +71,24 @@ function DraggableAttachmentCard({
   );
 }
 
+function UploadAttachmentsModal(props: Pick<ModalProps, "opened" | "onClose">) {
+  return (
+    <Modal title="بارگذاری فایل جدید" {...props}>
+      <UploadAttachments onCancel={props.onClose} />
+    </Modal>
+  );
+}
+
 function AttachmentEditor({
   initialAttachments,
 }: {
   initialAttachments: Attachment[] | undefined;
 }) {
+  const [
+    isUploadModalOpened,
+    { open: openUploadModal, close: closeUploadModal },
+  ] = useDisclosure(false);
+
   const [attachments, attachmentsListHandlers] = useListState(
     initialAttachments || [],
   );
@@ -86,43 +102,51 @@ function AttachmentEditor({
   }
 
   return (
-    <Stack justify="space-between" h={"90vh"}>
-      <Stack
-        style={{ overflowY: "auto" }}
-        mah={"100%"}
-        pos={"relative"}
-        pl={"md"}
-      >
-        <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable droppableId="col-1">
-            {(provided) => (
-              <Box ref={provided.innerRef} {...provided.droppableProps}>
-                {attachments?.map((attachment, index) => {
-                  return (
-                    <DraggableAttachmentCard
-                      attachment={attachment}
-                      index={index}
-                      key={attachment.id}
-                    />
-                  );
-                })}
-                {provided.placeholder}
-              </Box>
-            )}
-          </Droppable>
-        </DragDropContext>
+    <>
+      <Stack justify="space-between" h={"90vh"}>
+        <Stack
+          style={{ overflowY: "auto" }}
+          mah={"100%"}
+          pos={"relative"}
+          pl={"md"}
+        >
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="col-1">
+              {(provided) => (
+                <Box ref={provided.innerRef} {...provided.droppableProps}>
+                  {attachments?.map((attachment, index) => {
+                    return (
+                      <DraggableAttachmentCard
+                        attachment={attachment}
+                        index={index}
+                        key={attachment.id}
+                      />
+                    );
+                  })}
+                  {provided.placeholder}
+                </Box>
+              )}
+            </Droppable>
+          </DragDropContext>
+        </Stack>
+
+        <Button
+          leftSection={<IconUpload />}
+          style={{
+            alignSelf: "flex-start",
+            flexShrink: 0,
+          }}
+          onClick={openUploadModal}
+        >
+          بارگذاری فایل جدید
+        </Button>
       </Stack>
 
-      <Button
-        leftSection={<IconUpload />}
-        style={{
-          alignSelf: "flex-start",
-          flexShrink: 0,
-        }}
-      >
-        بارگذاری فایل جدید
-      </Button>
-    </Stack>
+      <UploadAttachmentsModal
+        opened={isUploadModalOpened}
+        onClose={closeUploadModal}
+      />
+    </>
   );
 }
 
