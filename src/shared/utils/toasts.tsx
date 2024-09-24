@@ -21,6 +21,19 @@ const notify = {
   info(message: string) {
     notifications.show({ message, icon: <IconInfoSmall /> });
   },
+
+  loading(message: string) {
+    return notifications.show({
+      message,
+      loading: true,
+      autoClose: false,
+      withCloseButton: false,
+    });
+  },
+
+  update(...args: Parameters<typeof notifications.update>) {
+    return notifications.update(...args);
+  },
 };
 
 export default notify;

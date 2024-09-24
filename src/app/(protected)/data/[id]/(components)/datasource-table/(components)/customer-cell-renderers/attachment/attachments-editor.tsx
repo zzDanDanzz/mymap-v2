@@ -22,7 +22,7 @@ import { MAPIR_API_BASE } from "@shared/config";
 import { getUserXApiKey } from "@shared/utils/local-storage";
 import { IconGripVertical, IconUpload } from "@tabler/icons-react";
 import { Attachment } from "../types";
-import UploadAttachments from "../upload-attachments";
+// import UploadAttachments from "../upload-attachments";
 
 function DraggableAttachmentCard({
   attachment,
@@ -60,7 +60,9 @@ function DraggableAttachmentCard({
               h={40}
               radius="md"
               alt={`attachment image #${filename}`}
-              src={`${MAPIR_API_BASE}/${attachment.thumbnail_link}?x-api-key=${getUserXApiKey()}`}
+              src={`${MAPIR_API_BASE}/${
+                attachment.thumbnail_link
+              }?x-api-key=${getUserXApiKey()}`}
             />
             <Text truncate="end">{filename}</Text>
             <Badge flex={"1 0 auto"}>{attachment.extension}</Badge>
@@ -74,7 +76,7 @@ function DraggableAttachmentCard({
 function UploadAttachmentsModal(props: Pick<ModalProps, "opened" | "onClose">) {
   return (
     <Modal title="بارگذاری فایل جدید" {...props}>
-      <UploadAttachments onCancel={props.onClose} />
+      {/* <UploadAttachments onCancel={props.onClose} /> */}
     </Modal>
   );
 }
@@ -90,7 +92,7 @@ function AttachmentEditor({
   ] = useDisclosure(false);
 
   const [attachments, attachmentsListHandlers] = useListState(
-    initialAttachments || [],
+    initialAttachments || []
   );
 
   function onDragEnd(result: DropResult) {

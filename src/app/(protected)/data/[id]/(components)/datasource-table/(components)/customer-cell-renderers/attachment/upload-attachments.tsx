@@ -1,4 +1,7 @@
 import { Button, FileButton, Group, Stack, Text } from "@mantine/core";
+import urls from "@shared/api/urls";
+import { getUserXApiKey } from "@shared/utils/local-storage";
+import notify from "@shared/utils/toasts";
 import { useState } from "react";
 
 /** Get name and extension from a filename string */
@@ -20,53 +23,37 @@ async function uploadFile(file: File) {
   const formData = new FormData();
   formData.append("file", file, transformDotsToUnderscores(file.name));
 
-  const mediaUplaodToastId = toast.loading("آپلود فایل ضمیمه") as
-    | string
-    | number;
+  const toastId = notify.loading(`در حال آپلود فایل ${file.name}`);
 
-  const updateProgress = (event: ProgressEvent<EventTarget>) => {
-    const progress = Math.round((event.loaded / event.total) * 100);
-    toast.update(mediaUplaodToastId as string | number, {
-      render: `آپلود فایل ضمیمه - ${toFaDigits(progress)}%`,
-    });
-  };
-
-  const mediaResponse = await fetchWithProgress<IMediaResponse>(
-    `${urls.media}`,
-    {
-      method: "POST",
-      headers: {
-        // token: token ?? '',
-        "x-api-key": `${getMapAPIKey()}`,
-      },
-      body: formData,
+  const mediaResponse = await fetch(`${urls.media}/`, {
+    method: "POST",
+    headers: {
+      "x-api-key": `${getUserXApiKey()}`,
     },
-    updateProgress,
-  ).catch(({ status, statusText }) => {
-    let message = "مشکلی در آپلود تصویر پیش آمده.";
-    if (status === 413) {
-      message = "حجم فایل انتخاب شده بیش از حد مجاز است.";
-    }
+    body: formData,
+  }).catch(({ status }) => {
+    const message =
+      status === 413
+        ? "حجم فایل انتخاب شده بیش از حد مجاز است."
+        : `مشکلی در آپلود فایل ${file.name} پیش آمده`;
 
-    toast.update(mediaUplaodToastId as string | number, {
-      render: message,
-      type: "error",
-      isLoading: false,
-      autoClose: 1000,
+    notify.update({
+      id: toastId,
+      message,
+      color: "red",
+      loading: false,
+      autoClose: 5000,
     });
-
-    return undefined;
-
-    /// TODO: Remove file from uploadings
   });
 
   if (!mediaResponse) return;
 
-  toast.update(mediaUplaodToastId, {
-    render: `تصویر قرارداد آپلود شد`,
-    type: "success",
-    isLoading: false,
-    autoClose: 2000,
+  notify.update({
+    id: toastId,
+    message: `فایل ${file.name} آپلود شد`,
+    color: "green",
+    loading: false,
+    autoClose: 5000,
   });
 
   return mediaResponse;
@@ -75,6 +62,21 @@ async function uploadFile(file: File) {
 function UploadAttachments({ onCancel }: { onCancel: () => void }) {
   const [files, setFiles] = useState<File[] | null>(null);
 
+  const pickedAtLeastOneFile = (files ?? []).length > 0;
+
+  const handleUpload = async () => {
+    if (!files) return;
+
+    const uploadedFiles = await Promise.all(
+      files.map((file) => uploadFile(file))
+    ).catch((err) => {
+      console.error(err);
+    });
+
+    onCancel();
+
+    return uploadedFiles;
+  };
   return (
     <Stack gap={"xs"}>
       <FileButton onChange={setFiles} multiple>
@@ -85,7 +87,9 @@ function UploadAttachments({ onCancel }: { onCancel: () => void }) {
         <Button variant="outline" onClick={onCancel}>
           انصراف
         </Button>
-        <Button disabled={!((files ?? [])?.length > 1)}>آپلود</Button>
+        <Button disabled={!pickedAtLeastOneFile} onClick={handleUpload}>
+          آپلود
+        </Button>
       </Group>
     </Stack>
   );

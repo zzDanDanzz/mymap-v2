@@ -16,7 +16,8 @@ import { useState } from "react";
 // @hello-pangea/dnd is a fork of react-beautiful-dnd that works with react 18
 import AttachmentEditor from "./attachments-editor";
 import { Attachment } from "../types";
-import UploadAttachments from "../upload-attachments";
+import UploadAttachments from "./upload-attachments";
+// import UploadAttachments from "../upload-attachments";
 
 function EmptyAttachmentCell({ onAdd }: { onAdd: () => void }) {
   const [showAddButton, setShowAddButton] = useState(false);
@@ -46,7 +47,7 @@ function EmptyAttachmentCell({ onAdd }: { onAdd: () => void }) {
 function AttachmentEditorDrawer(
   props: Pick<DrawerProps, "opened" | "onClose"> & {
     initialAttachments: Attachment[] | undefined;
-  },
+  }
 ) {
   return (
     <Drawer
@@ -106,7 +107,9 @@ export default function AttachmentPreview({
               h={36}
               radius="md"
               alt={`attachment image #${idx}`}
-              src={`${MAPIR_API_BASE}/${a.thumbnail_link}?x-api-key=${getUserXApiKey()}`}
+              src={`${MAPIR_API_BASE}/${
+                a.thumbnail_link
+              }?x-api-key=${getUserXApiKey()}`}
             />
           ))}
         </Group>

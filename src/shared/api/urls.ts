@@ -22,6 +22,8 @@ const urls = {
 
   datasources: `${MYMAP_API_BASE}/mym/datasources`,
   editorTables: `${MYMAP_API_BASE}/editor/tables`,
+
+  media: `${MAPIR_API_BASE}/media`,
 };
 
 export default urls;
