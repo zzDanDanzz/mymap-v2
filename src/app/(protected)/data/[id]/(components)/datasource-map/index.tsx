@@ -84,6 +84,9 @@ function DatasourceMap({ id }: { id: string }) {
             },
           };
         }}
+        style={{
+          fontFamily: "IRANSansWeb",
+        }}
       >
         <ResizeMapToContainer containerObserverRect={mapContainerRect} />
 
