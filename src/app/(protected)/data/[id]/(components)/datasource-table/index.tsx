@@ -1,5 +1,6 @@
 import "ag-grid-community/styles/ag-grid.css"; // Core grid CSS, always needed
 import "ag-grid-community/styles/ag-theme-alpine.css"; // Optional theme CSS
+import "./grid-style-overrides.css";
 
 import { Group, Stack, Text, TextInput, UnstyledButton } from "@mantine/core";
 import useDatasource from "@shared/hooks/swr/datasources/use-datasource";

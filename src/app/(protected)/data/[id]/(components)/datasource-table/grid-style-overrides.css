@@ -1,0 +1,4 @@
+.ag-theme-alpine {
+  --ag-font-family: IRANSansWeb;
+  --ag-font-size: var(--mantine-font-size-sm);
+}
