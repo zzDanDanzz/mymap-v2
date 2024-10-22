@@ -1,5 +1,6 @@
 import {
   ActionIcon,
+  Box,
   Button,
   Group,
   LoadingOverlay,
@@ -128,9 +129,15 @@ function CustomGridHeader(props: CustomHeaderProps) {
   const columnID = props.column.getColId();
 
   return (
-    <Group style={{ flexGrow: 1 }} justify="space-between">
-      <Stack gap={"xs"} align="flex-start">
-        <Text size="md" fw={"bold"}>
+    <Group
+      style={{ flexGrow: 1 }}
+      justify="space-between"
+      gap={0}
+      maw={"100%"}
+      wrap="nowrap"
+    >
+      <Stack gap={"xs"} align="flex-start" maw={"85%"}>
+        <Text size="sm" fw={"bold"} truncate maw={"100%"}>
           {columnID}
         </Text>
 
@@ -140,7 +147,9 @@ function CustomGridHeader(props: CustomHeaderProps) {
           datasourceId={id}
         />
       </Stack>
-      <ColumnOptionsMenu />
+      <Box flex={"0 0 auto"}>
+        <ColumnOptionsMenu />
+      </Box>
     </Group>
   );
 }
