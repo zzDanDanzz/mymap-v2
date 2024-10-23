@@ -35,14 +35,15 @@ export function useDatasourceRows({
         $top: rowsPerPage,
         $skip: page === 1 ? null : (page - 1) * rowsPerPage,
         $search: debouncedSearch,
+        $orderby: "id",
       },
-      { skipNull: true, skipEmptyString: true },
+      { skipNull: true, skipEmptyString: true }
     );
   }, [debouncedSearch, page, rowsPerPage]);
 
   const { data, error, isLoading, isValidating, mutate } = useSWRImmutable(
     `${urls.editorTables}/${id}/rows?${qs}`,
-    fetcher,
+    fetcher
   );
 
   return {

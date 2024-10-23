@@ -4,6 +4,7 @@ import urls from "@shared/api/urls";
 import { getUserXApiKey } from "@shared/utils/local-storage";
 import notify from "@shared/utils/toasts";
 import { useState } from "react";
+import { Attachment } from "../types";
 
 /** Get name and extension from a filename string */
 const splitAtExtension = (name: string) => {
@@ -20,30 +21,17 @@ const transformDotsToUnderscores = (fileName: string) => {
   return name.replaceAll(".", "_") + ext;
 };
 
-type MediaResponse = {
-  mime_type: string;
-  extension: string;
-  size: number;
-  link: string;
-  thumbnail_link: string;
-  id: number;
-};
-
 async function uploadFile(file: File) {
   const formData = new FormData();
   formData.append("file", file, transformDotsToUnderscores(file.name));
 
   const toastId = notify.loading(`در حال آپلود فایل ${file.name}`);
 
-  const mediaResponse = await ax.post<MediaResponse>(
-    `${urls.media}/`,
-    formData,
-    {
-      headers: {
-        "x-api-key": `${getUserXApiKey()}`,
-      },
-    }
-  );
+  const mediaResponse = await ax.post<Attachment>(`${urls.media}/`, formData, {
+    headers: {
+      "x-api-key": `${getUserXApiKey()}`,
+    },
+  });
 
   const isOk = mediaResponse.status >= 200 && mediaResponse.status < 300;
 
@@ -70,10 +58,16 @@ async function uploadFile(file: File) {
     autoClose: 5000,
   });
 
-  return mediaResponse;
+  return mediaResponse.data;
 }
 
-function UploadAttachments({ onCancel }: { onCancel: () => void }) {
+function UploadAttachments({
+  onCancel,
+  onUpload,
+}: {
+  onCancel: () => void;
+  onUpload: (files: Attachment[]) => void;
+}) {
   const [files, setFiles] = useState<File[] | null>(null);
 
   const pickedAtLeastOneFile = (files ?? []).length > 0;
@@ -89,10 +83,9 @@ function UploadAttachments({ onCancel }: { onCancel: () => void }) {
 
     if (!uploadedFiles) return;
 
-    // TODO: update row per uploaded file
-
-    onCancel();
+    onUpload(uploadedFiles.filter(Boolean) as Attachment[]);
   };
+
   return (
     <Stack gap={"xs"}>
       <FileButton onChange={setFiles} multiple>

@@ -81,10 +81,7 @@ function useColDefs({
             colDef.editable = false;
 
             colDef.cellRenderer = (props: CustomCellRendererProps) => {
-              console.log(props);
-              return (
-                <AttachmentPreview cellData={props.value} columnId={col.name} />
-              );
+              return <AttachmentPreview {...props} />;
             };
           }
 

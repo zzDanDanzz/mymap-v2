@@ -9,6 +9,8 @@ import MapboxGlDraw from "./mapbox-gl-draw";
 import { ODataResponse } from "@shared/types/api.types";
 import { DatasourceRow } from "@shared/types/datasource.types";
 import { KeyedMutator } from "swr";
+import { selectedRowIdsAtom } from "@/data/[id]/(utils)/atoms";
+import { useSetAtom } from "jotai";
 
 function EditGeometry({
   isEditingGeom,
@@ -20,13 +22,14 @@ function EditGeometry({
 }: {
   isEditingGeom: boolean;
   setIsEditingGeom: React.Dispatch<React.SetStateAction<boolean>>;
-  geojsonData: FeatureCollection<Geometry, GeoJsonProperties>;
+  geojsonData: FeatureCollection;
   datasourceId: string;
   selectedGeomColumn: string | undefined;
   mutateDatasourceRows: KeyedMutator<ODataResponse<DatasourceRow>>;
 }) {
   const [geomEdits, setGeomEdits] = useState<GeomEdit[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const setSelectedRowIdsAtom = useSetAtom(selectedRowIdsAtom);
 
   // reset geom edits when edit mode is turned off
   useEffect(() => {
@@ -72,6 +75,18 @@ function EditGeometry({
     setGeomEdits((prev) => [...prev, ...deleted]);
   }, []);
 
+  const onSelectFeatures = useCallback(
+    (e: DrawUpdateEvent) => {
+      const Ids = e.features
+        .map((f) => f.properties?.id)
+        .filter(Boolean) as string[];
+
+      console.log(Ids);
+      setSelectedRowIdsAtom(Ids);
+    },
+    [setSelectedRowIdsAtom]
+  );
+
   const onSubmitDrawChanges = useCallback(async () => {
     if (!selectedGeomColumn) return;
 
@@ -116,13 +131,13 @@ function EditGeometry({
     await mutateDatasourceRows();
 
     const failedCount = results.filter(
-      (result) => result.status === "rejected",
+      (result) => result.status === "rejected"
     ).length;
     const totalCount = results.length;
 
     if (failedCount > 0) {
       notify.error(
-        `متاسفانه ${failedCount} از ${totalCount} تغییرات شما ثبت نشد.`,
+        `متاسفانه ${failedCount} از ${totalCount} تغییرات شما ثبت نشد.`
       );
     } else {
       notify.success("تغییرات با موفقیت ثبت شد.");
@@ -145,6 +160,7 @@ function EditGeometry({
           geojsonData={geojsonData}
           onUpdate={onUpdateFeatures}
           onDelete={onDeleteFeatures}
+          onSelect={onSelectFeatures}
         />
       )}
 

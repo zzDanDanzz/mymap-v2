@@ -13,11 +13,15 @@ import { MAPIR_API_BASE } from "@shared/config";
 import { getUserXApiKey } from "@shared/utils/local-storage";
 import { IconPlus } from "@tabler/icons-react";
 import { useState } from "react";
-// @hello-pangea/dnd is a fork of react-beautiful-dnd that works with react 18
 import AttachmentEditor from "./attachments-editor";
 import { Attachment } from "../types";
 import UploadAttachments from "./upload-attachments";
-// import UploadAttachments from "../upload-attachments";
+import { updateDatasourceRow } from "@/data/[id]/(utils)/api";
+import { CustomCellRendererProps } from "ag-grid-react";
+import { useParams, useSearchParams } from "next/navigation";
+import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-rows";
+
+// @hello-pangea/dnd is a fork of react-beautiful-dnd that works with react 18
 
 function EmptyAttachmentCell({ onAdd }: { onAdd: () => void }) {
   const [showAddButton, setShowAddButton] = useState(false);
@@ -62,36 +66,74 @@ function AttachmentEditorDrawer(
   );
 }
 
-function UploadAttachmentsModal(props: Pick<ModalProps, "opened" | "onClose">) {
+function UploadAttachmentsModal({
+  modalProps,
+  onUpload,
+}: {
+  modalProps: Pick<ModalProps, "opened" | "onClose">;
+  onUpload: (files: Attachment[]) => void;
+}) {
   return (
-    <Modal title="بارگذاری فایل جدید" {...props}>
-      <UploadAttachments onCancel={props.onClose} />
+    <Modal title="بارگذاری فایل جدید" {...modalProps}>
+      <UploadAttachments onCancel={modalProps.onClose} onUpload={onUpload} />
     </Modal>
   );
 }
+export default function AttachmentPreview(props: CustomCellRendererProps) {
+  const cellData = props.value as Attachment[];
 
-export default function AttachmentPreview({
-  cellData,
-}: {
-  cellData: Attachment[];
-  columnId: string;
-}) {
+  const { id } = useParams<{ id: string }>();
+
+  const params = useSearchParams();
+
+  const { datasourceRowsMutate } = useDatasourceRows({
+    id,
+    search: params.get("search") ?? "",
+  });
+
   const hasNoAttachments = !(cellData?.length >= 1);
 
   const [isEditorOpened, { open: openEditor, close: closeEditor }] =
     useDisclosure(false);
+
   const [
     isUploadModalOpened,
     { open: openUploadModal, close: closeUploadModal },
   ] = useDisclosure(false);
+
+  const handleUpdateAttachments = async (files: Attachment[]) => {
+    const _columnField = props.colDef?.field;
+
+    if (!_columnField) return;
+
+    const _cellData = props.data[_columnField];
+
+    props.api.setGridOption("loading", true);
+
+    closeUploadModal();
+
+    updateDatasourceRow({
+      datasourceId: id,
+      rowId: props.data.id,
+      cellColumnName: _columnField,
+      updatedCellData: [...(_cellData ?? []), ...files],
+    });
+
+    await datasourceRowsMutate();
+
+    props.api.setGridOption("loading", false);
+  };
 
   if (hasNoAttachments) {
     return (
       <>
         <EmptyAttachmentCell onAdd={openUploadModal} />
         <UploadAttachmentsModal
-          opened={isUploadModalOpened}
-          onClose={closeUploadModal}
+          modalProps={{
+            opened: isUploadModalOpened,
+            onClose: closeUploadModal,
+          }}
+          onUpload={handleUpdateAttachments}
         />
       </>
     );

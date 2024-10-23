@@ -16,10 +16,12 @@ function MapboxGlDraw({
   geojsonData,
   onUpdate,
   onDelete,
+  onSelect,
 }: {
   geojsonData: FeatureCollection;
   onUpdate: (e: DrawUpdateEvent) => void;
   onDelete: (e: DrawDeleteEvent) => void;
+  onSelect: (e: DrawUpdateEvent) => void;
 }) {
   const theme = useMantineTheme();
   const { current: mapRef } = useMap();
@@ -42,16 +44,18 @@ function MapboxGlDraw({
     ({ map }: { map: MapInstance }) => {
       map.on("draw.update", onUpdate);
       map.on("draw.delete", onDelete);
+      map.on("draw.selectionchange", onSelect);
     },
-    [onDelete, onUpdate],
+    [onDelete, onSelect, onUpdate]
   );
 
   const onRemoveControlFromMap: any = useCallback(
     ({ map }: { map: MapInstance }) => {
       map.off("draw.update", onUpdate);
       map.off("draw.delete", onDelete);
+      map.off("draw.selectionchange", onSelect);
     },
-    [onDelete, onUpdate],
+    [onDelete, onSelect, onUpdate]
   );
 
   const controlOptions = useMemo(() => {
@@ -64,7 +68,7 @@ function MapboxGlDraw({
     createDrawControlInstance,
     onAddControlToMap,
     onRemoveControlFromMap,
-    controlOptions,
+    controlOptions
   );
 
   // add features to gl-draw if editing geom
