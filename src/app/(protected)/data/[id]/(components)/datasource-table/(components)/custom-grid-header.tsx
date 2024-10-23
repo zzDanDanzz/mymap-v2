@@ -8,6 +8,7 @@ import {
   ScrollArea,
   Stack,
   Text,
+  Tooltip,
 } from "@mantine/core";
 import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasource-columns";
 import { DatasourceColumn } from "@shared/types/datasource.types";
@@ -137,9 +138,11 @@ function CustomGridHeader(props: CustomHeaderProps) {
       wrap="nowrap"
     >
       <Stack gap={"xs"} align="flex-start" maw={"85%"}>
-        <Text size="sm" fw={"bold"} truncate maw={"100%"}>
-          {columnID}
-        </Text>
+        <Tooltip label={columnID}>
+          <Text size="sm" fw={"bold"} truncate maw={"100%"}>
+            {columnID}
+          </Text>
+        </Tooltip>
 
         <DataTypePickerDropdown
           dataType={dataType}

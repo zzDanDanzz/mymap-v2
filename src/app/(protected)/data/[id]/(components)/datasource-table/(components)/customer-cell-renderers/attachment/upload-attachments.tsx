@@ -1,4 +1,5 @@
 import { Button, FileButton, Group, Stack, Text } from "@mantine/core";
+import { ax } from "@shared/api/axios-instance";
 import urls from "@shared/api/urls";
 import { getUserXApiKey } from "@shared/utils/local-storage";
 import notify from "@shared/utils/toasts";
@@ -19,34 +20,47 @@ const transformDotsToUnderscores = (fileName: string) => {
   return name.replaceAll(".", "_") + ext;
 };
 
+type MediaResponse = {
+  mime_type: string;
+  extension: string;
+  size: number;
+  link: string;
+  thumbnail_link: string;
+  id: number;
+};
+
 async function uploadFile(file: File) {
   const formData = new FormData();
   formData.append("file", file, transformDotsToUnderscores(file.name));
 
   const toastId = notify.loading(`در حال آپلود فایل ${file.name}`);
 
-  const mediaResponse = await fetch(`${urls.media}/`, {
-    method: "POST",
-    headers: {
-      "x-api-key": `${getUserXApiKey()}`,
-    },
-    body: formData,
-  }).catch(({ status }) => {
-    const message =
-      status === 413
-        ? "حجم فایل انتخاب شده بیش از حد مجاز است."
-        : `مشکلی در آپلود فایل ${file.name} پیش آمده`;
+  const mediaResponse = await ax.post<MediaResponse>(
+    `${urls.media}/`,
+    formData,
+    {
+      headers: {
+        "x-api-key": `${getUserXApiKey()}`,
+      },
+    }
+  );
 
+  const isOk = mediaResponse.status >= 200 && mediaResponse.status < 300;
+
+  if (!isOk) {
     notify.update({
       id: toastId,
-      message,
+      message:
+        mediaResponse.status === 413
+          ? "حجم فایل انتخاب شده بیش از حد مجاز است."
+          : `مشکلی در آپلود فایل ${file.name} پیش آمده`,
       color: "red",
       loading: false,
       autoClose: 5000,
     });
-  });
 
-  if (!mediaResponse) return;
+    return;
+  }
 
   notify.update({
     id: toastId,
@@ -73,9 +87,11 @@ function UploadAttachments({ onCancel }: { onCancel: () => void }) {
       console.error(err);
     });
 
-    onCancel();
+    if (!uploadedFiles) return;
 
-    return uploadedFiles;
+    // TODO: update row per uploaded file
+
+    onCancel();
   };
   return (
     <Stack gap={"xs"}>
