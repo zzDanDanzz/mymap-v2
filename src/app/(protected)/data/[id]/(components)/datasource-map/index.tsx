@@ -11,9 +11,11 @@ import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasour
 import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-rows";
 import { getUserXApiKey } from "@shared/utils/local-storage";
 import { feature, featureCollection } from "@turf/helpers";
+import { useSetAtom } from "jotai";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import Map from "react-map-gl";
+import { selectedRowIdsAtom } from "../../(utils)/atoms";
 import EditGeometry from "./(components)/edit-geometry";
 import FitMapBoundsToGeojsonData from "./(components)/fit-map-bounds-to-geojson-data";
 import ReadOnlyGeometryLayer from "./(components)/read-only-geometry-layer";
@@ -29,12 +31,14 @@ function DatasourceMap({ id }: { id: string }) {
     search: params.get("search") ?? "",
   });
 
+  const setSelectedRowIds = useSetAtom(selectedRowIdsAtom);
+
   const geometryColumns = useMemo(
     () =>
       datasourceColumns?.filter(({ data_type }) =>
-        GEOMETRY_DATA_TYPES.includes(data_type),
+        GEOMETRY_DATA_TYPES.includes(data_type)
       ),
-    [datasourceColumns],
+    [datasourceColumns]
   );
 
   const [selectedGeomColumn, setSelectedGeomColumn] = useState<string>();
@@ -64,6 +68,13 @@ function DatasourceMap({ id }: { id: string }) {
   }, [datasourceRows, selectedGeomColumn]);
 
   const [isEditingGeom, setIsEditingGeom] = useState(false);
+
+  // clear the selected row IDs when the user is no longer editing the geometry.
+  useEffect(() => {
+    if (!isEditingGeom) {
+      setSelectedRowIds([]);
+    }
+  }, [isEditingGeom, setSelectedRowIds]);
 
   const [mapContainerRef, mapContainerRect] = useResizeObserver();
 

@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@ag-grid-community/locale": "^32.0.2",
+    "@ag-grid-community/locale": "^32.3.0",
     "@hello-pangea/dnd": "^16.6.0",
     "@mantine/core": "^7.8.1",
     "@mantine/form": "^7.4.2",
@@ -21,8 +21,8 @@
     "@tabler/icons-react": "^3.4.0",
     "@turf/helpers": "^7.0.0",
     "@turf/turf": "^7.0.0",
-    "ag-grid-community": "^32.0.2",
-    "ag-grid-react": "^32.0.2",
+    "ag-grid-community": "^32.3.0",
+    "ag-grid-react": "^32.3.0",
     "axios": "^1.6.8",
     "d3": "^6.4.0",
     "hex-rgb": "^5.0.0",

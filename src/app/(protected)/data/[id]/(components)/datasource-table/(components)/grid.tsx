@@ -5,15 +5,18 @@ import type {
   CellEditingStoppedEvent,
   ColumnMovedEvent,
   ColumnPinnedEvent,
+  IRowNode,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import { useParams } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { DatasourceRow } from "@shared/types/datasource.types";
 import useColDefs from "../(hooks)/use-col-defs";
 import { syncGridColumnsOrderWithApi } from "../(utils)/api";
 import { updateDatasourceRow } from "@/data/[id]/(utils)/api";
+import { selectedRowIdsAtom } from "@/data/[id]/(utils)/atoms";
+import { useAtomValue } from "jotai";
 
 function Grid({
   rowData,
@@ -52,7 +55,7 @@ function Grid({
 
       event.api.setGridOption("loading", false);
     },
-    [id],
+    [id]
   );
 
   const onColumnMovedOrPinned = useCallback(
@@ -73,11 +76,40 @@ function Grid({
 
       event.api.setGridOption("loading", false);
     },
-    [datasource, datasourceMutate],
+    [datasource, datasourceMutate]
   );
+
+  const selectedRowIds = useAtomValue(selectedRowIdsAtom);
+
+  const gridRef = useRef<AgGridReact>(null);
+
+  // highlight selected rows in the grid based on selected geometry in map editing mode.
+  useEffect(() => {
+    const api = gridRef.current?.api;
+
+    if (!api) return;
+
+    console.log("selectedRowIds", selectedRowIds);
+    const nodesToSelect: IRowNode[] = [];
+
+    api.deselectAll();
+
+    api.forEachNode((node) => {
+      if (selectedRowIds.includes(node.data.id)) {
+        nodesToSelect.push(node);
+      }
+    });
+
+    api.setNodesSelected({
+      nodes: nodesToSelect,
+      newValue: true,
+      source: "api",
+    });
+  }, [selectedRowIds]);
 
   return (
     <AgGridReact
+      ref={gridRef}
       localeText={AG_GRID_LOCALE_IR}
       className="ag-theme-alpine"
       enableRtl={true}
@@ -88,6 +120,13 @@ function Grid({
       onColumnMoved={onColumnMovedOrPinned}
       onColumnPinned={onColumnMovedOrPinned}
       headerHeight={80}
+      rowSelection={{
+        mode: "multiRow",
+        enableClickSelection: false,
+        enableSelectionWithoutKeys: false,
+        checkboxes: false,
+        headerCheckbox: false,
+      }}
     />
   );
 }

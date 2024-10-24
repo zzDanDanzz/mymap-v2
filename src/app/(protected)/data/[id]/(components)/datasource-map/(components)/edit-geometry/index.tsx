@@ -57,31 +57,38 @@ function EditGeometry({
     setGeomEdits((prev) => [...prev, ...updated]);
   }, []);
 
-  const onDeleteFeatures = useCallback((e: DrawDeleteEvent) => {
-    const features = e.features;
+  const onDeleteFeatures = useCallback(
+    (e: DrawDeleteEvent) => {
+      const features = e.features;
 
-    const deleted = features
-      .map((f) => {
-        const id = f.properties?.id;
-        if (!id) return;
+      const deleted = features
+        .map((f) => {
+          const id = f.properties?.id;
+          if (!id) return;
 
-        return {
-          id,
-          type: "delete",
-        };
-      })
+          return {
+            id,
+            type: "delete",
+          };
+        })
+        .filter(Boolean) as GeomEdit[];
 
-      .filter(Boolean) as GeomEdit[];
-    setGeomEdits((prev) => [...prev, ...deleted]);
-  }, []);
+      // remove deleted features from selected row ids
+      setSelectedRowIdsAtom((prev) => {
+        const deletedIds = deleted.map((d) => d.id);
+        return prev.filter((id) => !deletedIds.includes(id));
+      });
+
+      setGeomEdits((prev) => [...prev, ...deleted]);
+    },
+    [setSelectedRowIdsAtom]
+  );
 
   const onSelectFeatures = useCallback(
     (e: DrawUpdateEvent) => {
       const Ids = e.features
         .map((f) => f.properties?.id)
         .filter(Boolean) as string[];
-
-      console.log(Ids);
       setSelectedRowIdsAtom(Ids);
     },
     [setSelectedRowIdsAtom]

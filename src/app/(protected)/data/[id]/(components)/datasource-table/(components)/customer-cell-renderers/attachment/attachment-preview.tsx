@@ -48,20 +48,22 @@ function EmptyAttachmentCell({ onAdd }: { onAdd: () => void }) {
   );
 }
 
-function AttachmentEditorDrawer(
-  props: Pick<DrawerProps, "opened" | "onClose"> & {
-    initialAttachments: Attachment[] | undefined;
-  }
-) {
+function AttachmentEditorDrawer({
+  drawerProps,
+  initialAttachments,
+}: {
+  drawerProps: Pick<DrawerProps, "opened" | "onClose">;
+  initialAttachments: Attachment[] | undefined;
+}) {
   return (
     <Drawer
       position="right"
       transitionProps={{
         transition: "fade-right",
       }}
-      {...props}
+      {...drawerProps}
     >
-      <AttachmentEditor initialAttachments={props.initialAttachments} />
+      <AttachmentEditor initialAttachments={initialAttachments} />
     </Drawer>
   );
 }
@@ -157,8 +159,10 @@ export default function AttachmentPreview(props: CustomCellRendererProps) {
         </Group>
       </UnstyledButton>
       <AttachmentEditorDrawer
-        opened={isEditorOpened}
-        onClose={closeEditor}
+        drawerProps={{
+          opened: isEditorOpened,
+          onClose: closeEditor,
+        }}
         initialAttachments={cellData}
       />
     </>
