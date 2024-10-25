@@ -1,15 +1,12 @@
 import { useEffect, useRef } from "react";
+import { bbox as getBbox } from "@turf/turf";
 import * as d3 from "d3";
 // @ts-ignore No type available
 import rewind from "@mapbox/geojson-rewind";
+import { useMap } from "react-map-gl";
+import { Geometry } from "geojson";
 
-function SVGPreview({
-  geoJson,
-  color,
-}: {
-  geoJson: mapboxgl.GeoJSONSource;
-  color: string;
-}) {
+function SVGPreview({ geom, color }: { geom: Geometry; color: string }) {
   const svgRef = useRef(null);
 
   const width = 200;
@@ -24,7 +21,7 @@ function SVGPreview({
         .attr("width", width)
         .attr("height", height);
 
-      const _geoJson = rewind(geoJson, true);
+      const _geoJson = rewind(geom, true);
 
       // const color = ['#EA4C89', '#15aee7', '#A9E5BB', '#F7B32B', '#2D1E2F'][
       //   index
@@ -68,26 +65,50 @@ function SVGPreview({
           .attr("d", path);
       }
     }
-  }, [color, geoJson]);
+  }, [color, geom]);
+
+  return <svg ref={svgRef} />;
+}
+
+function FitboundsOnClickWrapper({
+  children,
+  geom,
+}: {
+  children: React.ReactNode;
+  geom: Geometry;
+}) {
+  const { map } = useMap();
 
   return (
-    <div>
-      <svg ref={svgRef} />
+    <div
+      onClick={() => {
+        if (!map) {
+          return;
+        }
+
+        try {
+          const bbox = getBbox(geom) as [number, number, number, number];
+          bbox && map.fitBounds(bbox, { padding: 200, speed: 1.5 });
+        } catch (error) {
+          console.error(error);
+        }
+      }}
+    >
+      {children}
     </div>
   );
 }
-function GeomSvgPreview({
-  value,
-  color,
-}: {
-  value: mapboxgl.GeoJSONSource;
-  color: string;
-}) {
+
+function GeomSvgPreview({ value, color }: { value: Geometry; color: string }) {
   if (!value || typeof value !== "object") {
     return null;
   }
 
-  return <SVGPreview geoJson={value} color={color} />;
+  return (
+    <FitboundsOnClickWrapper geom={value}>
+      <SVGPreview geom={value} color={color} />
+    </FitboundsOnClickWrapper>
+  );
 }
 
 export default GeomSvgPreview;

@@ -172,7 +172,7 @@ function EditGeometry({
       )}
 
       {!isEditingGeom && (
-        <Button onClick={() => setIsEditingGeom(true)}>ویرا یش</Button>
+        <Button onClick={() => setIsEditingGeom(true)}>ویرایش</Button>
       )}
 
       {isEditingGeom && (
