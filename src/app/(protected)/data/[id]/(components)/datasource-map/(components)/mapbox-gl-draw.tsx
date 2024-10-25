@@ -1,27 +1,30 @@
 import { useMantineTheme } from "@mantine/core";
 import MapboxDraw, {
+  DrawCreateEvent,
   DrawDeleteEvent,
   DrawUpdateEvent,
 } from "@mapbox/mapbox-gl-draw";
 import type { FeatureCollection } from "geojson";
 import { useCallback, useEffect, useMemo } from "react";
 import { ControlPosition, MapInstance, useControl, useMap } from "react-map-gl";
-import getGlDrawStyles from "../../(utils)/gl-draw-styles";
-
-type ControlOptions = {
-  position?: ControlPosition;
-};
+import getGlDrawStyles from "../(utils)/gl-draw-styles";
 
 function MapboxGlDraw({
   geojsonData,
   onUpdate,
   onDelete,
   onSelect,
+  onCreate,
+  controls,
+  position,
 }: {
-  geojsonData: FeatureCollection;
-  onUpdate: (e: DrawUpdateEvent) => void;
-  onDelete: (e: DrawDeleteEvent) => void;
-  onSelect: (e: DrawUpdateEvent) => void;
+  geojsonData?: FeatureCollection;
+  onCreate?: (e: DrawCreateEvent) => void;
+  onUpdate?: (e: DrawUpdateEvent) => void;
+  onDelete?: (e: DrawDeleteEvent) => void;
+  onSelect?: (e: DrawUpdateEvent) => void;
+  controls?: MapboxDraw.MapboxDrawControls;
+  position?: ControlPosition;
 }) {
   const theme = useMantineTheme();
   const { current: mapRef } = useMap();
@@ -30,39 +33,39 @@ function MapboxGlDraw({
     return new MapboxDraw({
       defaultMode: "simple_select",
       displayControlsDefault: false,
-      controls: {
-        trash: true,
-      },
+      controls,
       styles: getGlDrawStyles({
         fillColor: theme.colors.orange[4],
         outlineColor: theme.colors.gray[1],
       }),
     });
-  }, [theme.colors.gray, theme.colors.orange]);
+  }, [controls, theme.colors.gray, theme.colors.orange]);
 
   const onAddControlToMap: any = useCallback(
     ({ map }: { map: MapInstance }) => {
-      map.on("draw.update", onUpdate);
-      map.on("draw.delete", onDelete);
-      map.on("draw.selectionchange", onSelect);
+      onCreate && map.on("draw.create", onCreate);
+      onUpdate && map.on("draw.update", onUpdate);
+      onDelete && map.on("draw.delete", onDelete);
+      onSelect && map.on("draw.selectionchange", onSelect);
     },
-    [onDelete, onSelect, onUpdate]
+    [onCreate, onDelete, onSelect, onUpdate]
   );
 
   const onRemoveControlFromMap: any = useCallback(
     ({ map }: { map: MapInstance }) => {
-      map.off("draw.update", onUpdate);
-      map.off("draw.delete", onDelete);
-      map.off("draw.selectionchange", onSelect);
+      onCreate && map.off("draw.create", onCreate);
+      onUpdate && map.off("draw.update", onUpdate);
+      onDelete && map.off("draw.delete", onDelete);
+      onSelect && map.off("draw.selectionchange", onSelect);
     },
-    [onDelete, onSelect, onUpdate]
+    [onCreate, onDelete, onSelect, onUpdate]
   );
 
   const controlOptions = useMemo(() => {
     return {
-      position: "bottom-right",
-    } as ControlOptions;
-  }, []);
+      position,
+    };
+  }, [position]);
 
   const draw: MapboxDraw | undefined = useControl<any>(
     createDrawControlInstance,

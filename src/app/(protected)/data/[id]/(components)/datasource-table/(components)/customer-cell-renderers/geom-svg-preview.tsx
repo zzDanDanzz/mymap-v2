@@ -117,7 +117,7 @@ function GeomSvgPreview(props: CustomCellRendererProps) {
         onAdd={() => {
           const cellColumnName = props.colDef?.field;
           const rowId = props.data.id;
-          const apiColumnData = props.context?.apiColumnData;
+          const apiColumnData = props.colDef?.context?.apiColumnData;
 
           if (!cellColumnName) {
             return;

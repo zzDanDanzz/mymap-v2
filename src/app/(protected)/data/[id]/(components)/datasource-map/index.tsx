@@ -19,6 +19,7 @@ import { GEOMETRY_DATA_TYPES } from "@shared/constants/datasource.constants";
 import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasource-columns";
 import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-rows";
 import { getUserXApiKey } from "@shared/utils/local-storage";
+import { IconInfoCircle } from "@tabler/icons-react";
 import { feature, featureCollection } from "@turf/helpers";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useSearchParams } from "next/navigation";
@@ -27,9 +28,9 @@ import Map from "react-map-gl";
 import { addingGeomModeAtom, selectedRowIdsAtom } from "../../(utils)/atoms";
 import EditGeometry from "./(components)/edit-geometry";
 import FitMapBoundsToGeojsonData from "./(components)/fit-map-bounds-to-geojson-data";
+import MapboxGlDraw from "./(components)/mapbox-gl-draw";
 import ReadOnlyGeometryLayer from "./(components)/read-only-geometry-layer";
 import ResizeMapToContainer from "./(components)/resize-map-to-container";
-import { IconInfoCircle } from "@tabler/icons-react";
 
 function DatasourceMap({ id }: { id: string }) {
   const { datasourceColumns } = useDatasourceColumns({ id });
@@ -46,7 +47,7 @@ function DatasourceMap({ id }: { id: string }) {
   const geometryColumns = useMemo(
     () =>
       datasourceColumns?.filter(({ data_type }) =>
-        GEOMETRY_DATA_TYPES.includes(data_type)
+        GEOMETRY_DATA_TYPES.includes(data_type as any)
       ),
     [datasourceColumns]
   );
@@ -162,6 +163,27 @@ function DatasourceMap({ id }: { id: string }) {
   );
 }
 
+type GeomDataTypeType = (typeof GEOMETRY_DATA_TYPES)[number];
+
+const getControls = (dataType: (typeof GEOMETRY_DATA_TYPES)[number]) => {
+  const pointControls = { point: true };
+  const lineControls = { line_string: true };
+  const polygonControls = { polygon: true };
+  const allControls = { ...pointControls, ...lineControls, ...polygonControls };
+
+  const map: Record<GeomDataTypeType, MapboxDraw.MapboxDrawControls> = {
+    point: pointControls,
+    multipoint: pointControls,
+    linestring: lineControls,
+    multilinestring: lineControls,
+    polygon: polygonControls,
+    multipolygon: polygonControls,
+    geometry: allControls,
+    geometrycollection: allControls,
+  };
+  return map[dataType];
+};
+
 function AddGeometry() {
   const [addingGeomMode, setAddingGeomMode] = useAtom(addingGeomModeAtom);
   const onCancel = useCallback(() => {
@@ -169,25 +191,35 @@ function AddGeometry() {
   }, [setAddingGeomMode]);
 
   return (
-    <Flex pos={"absolute"} bottom={10} left={10} w={"calc(100% - 20px)"}>
-      <Paper p={"sm"} withBorder>
-        <Group wrap="nowrap">
-          <Alert title="رسم ژئومتری" icon={<IconInfoCircle />}>
-            {"شما در حال اضافه کردن ژئومتری در ردیف " +
-              addingGeomMode.rowId +
-              " به ستون " +
-              addingGeomMode.datasourceColumn?.name +
-              " هستید"}
-          </Alert>
-          <Stack>
-            <Button>ثبت</Button>
-            <Button onClick={onCancel} variant="light">
-              لغو
-            </Button>
-          </Stack>
-        </Group>
-      </Paper>
-    </Flex>
+    <>
+      <Flex pos={"absolute"} bottom={10} left={10} w={"calc(100% - 20px)"}>
+        <Paper p={"sm"} withBorder>
+          <Group wrap="nowrap">
+            <Alert title="افزودن ژئومتری" icon={<IconInfoCircle />}>
+              {"شما در حال افزودن ژئومتری در ردیفی با آیدی " +
+                addingGeomMode.rowId +
+                " در ستون " +
+                addingGeomMode.datasourceColumn?.name +
+                " هستید"}
+            </Alert>
+            <Stack>
+              <Button>ثبت</Button>
+              <Button onClick={onCancel} variant="light">
+                لغو
+              </Button>
+            </Stack>
+          </Group>
+        </Paper>
+      </Flex>
+
+      <MapboxGlDraw
+        controls={getControls(
+          (addingGeomMode.datasourceColumn?.data_type ??
+            "geometry") as GeomDataTypeType
+        )}
+        position="top-right"
+      />
+    </>
   );
 }
 export default DatasourceMap;

@@ -10,7 +10,7 @@ import { useSetAtom } from "jotai";
 import { useCallback, useEffect, useState } from "react";
 import { KeyedMutator } from "swr";
 import { GeomEdit } from "../../(utils)/types";
-import MapboxGlDraw from "./mapbox-gl-draw";
+import MapboxGlDraw from "../mapbox-gl-draw";
 
 function EditGeometry({
   isEditingGeom,
@@ -171,10 +171,14 @@ function EditGeometry({
     <>
       {isEditingGeom && geojsonData && (
         <MapboxGlDraw
+          controls={{
+            trash: true,
+          }}
           geojsonData={geojsonData}
           onUpdate={onUpdateFeatures}
           onDelete={onDeleteFeatures}
           onSelect={onSelectFeatures}
+          position="bottom-right"
         />
       )}
 
