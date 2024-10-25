@@ -1,16 +1,16 @@
 import { updateDatasourceRow } from "@/data/[id]/(utils)/api";
+import { selectedRowIdsAtom } from "@/data/[id]/(utils)/atoms";
 import { Button, Group } from "@mantine/core";
-import notify from "@shared/utils/toasts";
-import { FeatureCollection, GeoJsonProperties, Geometry } from "geojson";
-import { useCallback, useEffect, useState } from "react";
-import { GeomEdit } from "../../(utils)/types";
-import { DrawUpdateEvent, DrawDeleteEvent } from "@mapbox/mapbox-gl-draw";
-import MapboxGlDraw from "./mapbox-gl-draw";
+import { DrawDeleteEvent, DrawUpdateEvent } from "@mapbox/mapbox-gl-draw";
 import { ODataResponse } from "@shared/types/api.types";
 import { DatasourceRow } from "@shared/types/datasource.types";
-import { KeyedMutator } from "swr";
-import { selectedRowIdsAtom } from "@/data/[id]/(utils)/atoms";
+import notify from "@shared/utils/toasts";
+import { FeatureCollection } from "geojson";
 import { useSetAtom } from "jotai";
+import { useCallback, useEffect, useState } from "react";
+import { KeyedMutator } from "swr";
+import { GeomEdit } from "../../(utils)/types";
+import MapboxGlDraw from "./mapbox-gl-draw";
 
 function EditGeometry({
   isEditingGeom,

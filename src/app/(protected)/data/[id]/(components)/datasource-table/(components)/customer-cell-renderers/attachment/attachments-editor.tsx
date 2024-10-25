@@ -1,28 +1,31 @@
 import {
-  DropResult,
-  DragDropContext,
-  Droppable,
-  Draggable,
-} from "@hello-pangea/dnd";
-import {
-  Stack,
-  Box,
-  Image,
-  Text,
-  Button,
   ActionIcon,
   Badge,
+  Box,
+  Button,
   Group,
-  Paper,
+  Image,
   Modal,
   ModalProps,
+  Paper,
+  Stack,
+  Text,
 } from "@mantine/core";
 import { useDisclosure, useListState } from "@mantine/hooks";
 import { MAPIR_API_BASE } from "@shared/config";
 import { getUserXApiKey } from "@shared/utils/local-storage";
 import { IconGripVertical, IconUpload } from "@tabler/icons-react";
 import { Attachment } from "../types";
-// import UploadAttachments from "../upload-attachments";
+
+/**
+ * @hello-pangea/dnd is a fork of react-beautiful-dnd that works with react 18
+ *  */
+import {
+  DragDropContext,
+  Draggable,
+  Droppable,
+  DropResult,
+} from "@hello-pangea/dnd";
 
 function DraggableAttachmentCard({
   attachment,

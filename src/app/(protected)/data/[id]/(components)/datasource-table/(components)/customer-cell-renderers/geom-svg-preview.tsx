@@ -1,12 +1,20 @@
-import { useEffect, useRef } from "react";
+import { useMantineTheme } from "@mantine/core";
 import { bbox as getBbox } from "@turf/turf";
+import { CustomCellRendererProps } from "ag-grid-react";
 import * as d3 from "d3";
+import { Geometry } from "geojson";
+import { useEffect, useRef } from "react";
+import { useMap } from "react-map-gl";
+import EmptyCellWithAdd from "../empty-cell-with-add";
+
 // @ts-ignore No type available
 import rewind from "@mapbox/geojson-rewind";
-import { useMap } from "react-map-gl";
-import { Geometry } from "geojson";
+import { useSetAtom } from "jotai";
+import { addingGeomModeAtom } from "@/data/[id]/(utils)/atoms";
 
-function SVGPreview({ geom, color }: { geom: Geometry; color: string }) {
+function SVGPreview({ geom }: { geom: Geometry }) {
+  const theme = useMantineTheme();
+  const color = theme.colors[theme.primaryColor][5];
   const svgRef = useRef(null);
 
   const width = 200;
@@ -88,7 +96,7 @@ function FitboundsOnClickWrapper({
 
         try {
           const bbox = getBbox(geom) as [number, number, number, number];
-          bbox && map.fitBounds(bbox, { padding: 200, speed: 1.5 });
+          bbox && map.fitBounds(bbox, { speed: 1.5 });
         } catch (error) {
           console.error(error);
         }
@@ -99,14 +107,35 @@ function FitboundsOnClickWrapper({
   );
 }
 
-function GeomSvgPreview({ value, color }: { value: Geometry; color: string }) {
-  if (!value || typeof value !== "object") {
-    return null;
+function GeomSvgPreview(props: CustomCellRendererProps) {
+  const geom = props.value;
+  const setAddingGeomMode = useSetAtom(addingGeomModeAtom);
+
+  if (!geom || typeof geom !== "object") {
+    return (
+      <EmptyCellWithAdd
+        onAdd={() => {
+          const cellColumnName = props.colDef?.field;
+          const rowId = props.data.id;
+          const apiColumnData = props.context?.apiColumnData;
+
+          if (!cellColumnName) {
+            return;
+          }
+
+          setAddingGeomMode({
+            isEnabled: true,
+            datasourceColumn: apiColumnData,
+            rowId,
+          });
+        }}
+      />
+    );
   }
 
   return (
-    <FitboundsOnClickWrapper geom={value}>
-      <SVGPreview geom={value} color={color} />
+    <FitboundsOnClickWrapper geom={geom}>
+      <SVGPreview geom={geom} />
     </FitboundsOnClickWrapper>
   );
 }

@@ -89,7 +89,6 @@ function Grid({
 
     if (!api) return;
 
-    console.log("selectedRowIds", selectedRowIds);
     const nodesToSelect: IRowNode[] = [];
 
     api.deselectAll();

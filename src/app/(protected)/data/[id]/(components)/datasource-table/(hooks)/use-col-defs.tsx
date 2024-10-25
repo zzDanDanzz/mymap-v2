@@ -1,16 +1,16 @@
-import { useMantineTheme } from "@mantine/core";
 import {
   COLUMNS_TO_HIDE,
   GEOMETRY_DATA_TYPES,
+  NON_EDITABLE_COLUMNS,
 } from "@shared/constants/datasource.constants";
 import { Datasource, DatasourceColumn } from "@shared/types/datasource.types";
 import type { ColDef } from "ag-grid-community";
-import { CustomCellRendererProps, CustomHeaderProps } from "ag-grid-react";
+import { CustomHeaderProps } from "ag-grid-react";
 import { useMemo } from "react";
 import CustomGridHeader from "../(components)/custom-grid-header";
+import AttachmentPreview from "../(components)/customer-cell-renderers/attachment/attachment-preview";
 import GeomSvgPreview from "../(components)/customer-cell-renderers/geom-svg-preview";
 import { useColumnOrdering } from "./use-column-ordering";
-import AttachmentPreview from "../(components)/customer-cell-renderers/attachment/attachment-preview";
 
 function useColDefs({
   currentDatasource,
@@ -23,8 +23,6 @@ function useColDefs({
     currentDatasource,
     columns: datasourceColumns,
   });
-
-  const theme = useMantineTheme();
 
   const transformedColumns = useMemo(() => {
     function compareFn(a_col: DatasourceColumn, b_col: DatasourceColumn) {
@@ -60,29 +58,24 @@ function useColDefs({
             context: {
               apiColumnData: col,
             },
+            valueFormatter: (params) => params.value,
           };
 
           // custom cell renderer for geometry data types
           if (GEOMETRY_DATA_TYPES.includes(col.data_type)) {
             colDef.editable = false;
-
-            colDef.cellRenderer = (props: CustomCellRendererProps) => {
-              return (
-                <GeomSvgPreview
-                  value={props.value}
-                  color={theme.colors[theme.primaryColor][5]}
-                />
-              );
-            };
+            colDef.cellRenderer = GeomSvgPreview;
           }
 
           // custom cell renderer for attachment data type
           if (col.data_type === "attachment") {
             colDef.editable = false;
+            colDef.cellRenderer = AttachmentPreview;
+          }
 
-            colDef.cellRenderer = (props: CustomCellRendererProps) => {
-              return <AttachmentPreview {...props} />;
-            };
+          // disable editing for some columns
+          if (NON_EDITABLE_COLUMNS.includes(col.name)) {
+            colDef.editable = false;
           }
 
           // handle grouping columns
@@ -96,7 +89,7 @@ function useColDefs({
           return colDef;
         }) ?? []
     );
-  }, [columnOrdering, datasourceColumns, theme.colors, theme.primaryColor]);
+  }, [columnOrdering, datasourceColumns]);
 
   return transformedColumns;
 }

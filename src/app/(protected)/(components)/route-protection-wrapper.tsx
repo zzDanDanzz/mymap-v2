@@ -40,7 +40,7 @@ export default function RouteProtectionWrapper({
     const sessionToken = getSessionToken();
 
     if (!sessionToken) {
-      console.log("no session token");
+      console.warn("no session token");
       logOut();
       return;
     }
@@ -50,7 +50,7 @@ export default function RouteProtectionWrapper({
     }
 
     if (userData && !userData.id) {
-      console.log("no user id");
+      console.warn("no user id");
       logOut();
       return;
     }

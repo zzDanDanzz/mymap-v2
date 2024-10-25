@@ -43,3 +43,5 @@ export const DATA_TYPES_BY_CATEGORY = {
 };
 
 export const COLUMNS_TO_HIDE = ["deleted_at"];
+
+export const NON_EDITABLE_COLUMNS = ["id"];

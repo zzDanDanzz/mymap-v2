@@ -1,5 +1,5 @@
+import { updateDatasourceRow } from "@/data/[id]/(utils)/api";
 import {
-  ActionIcon,
   Drawer,
   DrawerProps,
   Group,
@@ -10,43 +10,14 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { MAPIR_API_BASE } from "@shared/config";
+import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-rows";
 import { getUserXApiKey } from "@shared/utils/local-storage";
-import { IconPlus } from "@tabler/icons-react";
-import { useState } from "react";
-import AttachmentEditor from "./attachments-editor";
-import { Attachment } from "../types";
-import UploadAttachments from "./upload-attachments";
-import { updateDatasourceRow } from "@/data/[id]/(utils)/api";
 import { CustomCellRendererProps } from "ag-grid-react";
 import { useParams, useSearchParams } from "next/navigation";
-import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-rows";
-
-// @hello-pangea/dnd is a fork of react-beautiful-dnd that works with react 18
-
-function EmptyAttachmentCell({ onAdd }: { onAdd: () => void }) {
-  const [showAddButton, setShowAddButton] = useState(false);
-
-  return (
-    <UnstyledButton
-      onMouseEnter={() => setShowAddButton(true)}
-      onMouseLeave={() => setShowAddButton(false)}
-      onClick={onAdd}
-      h={"100%"}
-      w={"100%"}
-    >
-      <Group justify="flex-end">
-        <ActionIcon
-          variant="filled"
-          color="pink"
-          opacity={showAddButton ? 1 : 0}
-          component="div"
-        >
-          <IconPlus />
-        </ActionIcon>
-      </Group>
-    </UnstyledButton>
-  );
-}
+import EmptyCellWithAdd from "../../empty-cell-with-add";
+import { Attachment } from "../types";
+import AttachmentEditor from "./attachments-editor";
+import UploadAttachments from "./upload-attachments";
 
 function AttachmentEditorDrawer({
   drawerProps,
@@ -129,7 +100,7 @@ export default function AttachmentPreview(props: CustomCellRendererProps) {
   if (hasNoAttachments) {
     return (
       <>
-        <EmptyAttachmentCell onAdd={openUploadModal} />
+        <EmptyCellWithAdd onAdd={openUploadModal} />
         <UploadAttachmentsModal
           modalProps={{
             opened: isUploadModalOpened,
