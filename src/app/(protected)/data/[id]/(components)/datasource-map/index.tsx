@@ -21,6 +21,7 @@ import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-
 import { getUserXApiKey } from "@shared/utils/local-storage";
 import { IconInfoCircle } from "@tabler/icons-react";
 import { feature, featureCollection } from "@turf/helpers";
+import GeoJSON from "geojson";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -163,15 +164,13 @@ function DatasourceMap({ id }: { id: string }) {
   );
 }
 
-type GeomDataTypeType = (typeof GEOMETRY_DATA_TYPES)[number];
-
-const getControls = (dataType: (typeof GEOMETRY_DATA_TYPES)[number]) => {
+const getControls = (dataType: string) => {
   const pointControls = { point: true };
   const lineControls = { line_string: true };
   const polygonControls = { polygon: true };
   const allControls = { ...pointControls, ...lineControls, ...polygonControls };
 
-  const map: Record<GeomDataTypeType, MapboxDraw.MapboxDrawControls> = {
+  const map: Record<string, MapboxDraw.MapboxDrawControls> = {
     point: pointControls,
     multipoint: pointControls,
     linestring: lineControls,
@@ -214,8 +213,7 @@ function AddGeometry() {
 
       <MapboxGlDraw
         controls={getControls(
-          (addingGeomMode.datasourceColumn?.data_type ??
-            "geometry") as GeomDataTypeType
+          addingGeomMode.datasourceColumn?.data_type ?? "geometry"
         )}
         position="top-right"
       />

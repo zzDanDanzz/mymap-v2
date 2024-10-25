@@ -7,7 +7,7 @@ export const GEOMETRY_DATA_TYPES = [
   "multipolygon",
   "geometrycollection",
   "geometry",
-] as const;
+];
 
 export const DEFAULT_ROWS_PER_PAGE = 10000;
 
