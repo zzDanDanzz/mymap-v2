@@ -44,7 +44,7 @@ function UploadAttachmentsModal({
   onUpload,
 }: {
   modalProps: Pick<ModalProps, "opened" | "onClose">;
-  onUpload: (files: Attachment[]) => void;
+  onUpload: (_files: Attachment[]) => void;
 }) {
   return (
     <Modal title="بارگذاری فایل جدید" {...modalProps}>

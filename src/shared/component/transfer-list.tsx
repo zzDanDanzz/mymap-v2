@@ -32,7 +32,7 @@ interface ITransferListProps {
   titles: [string, string];
   nothingFound: string;
   placeholder: string;
-  onChange: (values: [Value[], Value[]]) => void;
+  onChange: (_values: [Value[], Value[]]) => void;
 }
 
 function TransferList({ onChange, ...props }: ITransferListProps) {
@@ -97,7 +97,7 @@ function List({
 }: {
   values: Value[];
   title: string;
-  onTransfer: (value: Value[]) => void;
+  onTransfer: (_value: Value[]) => void;
   flipIcons?: boolean;
   nothingFound: string;
   placeholder: string;
@@ -108,9 +108,9 @@ function List({
   const filteredValues = useMemo(
     () =>
       values.filter((v) =>
-        v.label.toLowerCase().includes(search.toLowerCase()),
+        v.label.toLowerCase().includes(search.toLowerCase())
       ),
-    [search, values],
+    [search, values]
   );
 
   return (
@@ -165,7 +165,7 @@ function List({
                 setSelected(
                   e.currentTarget.checked
                     ? [...selected, value]
-                    : selected.filter((v) => v.id !== value.id),
+                    : selected.filter((v) => v.id !== value.id)
                 )
               }
               value={value.id}

@@ -83,7 +83,7 @@ function DataTypePickerDropdown({
           pos={"relative"}
         >
           <LoadingOverlay visible={loading} />
-          {Object.keys(DATA_TYPES_BY_CATEGORY).map((category, i) => (
+          {Object.keys(DATA_TYPES_BY_CATEGORY).map((category) => (
             <React.Fragment key={category}>
               <Group gap={0}>
                 <Menu.Label>

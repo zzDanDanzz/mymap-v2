@@ -1,9 +1,10 @@
 import { ActionIcon, Group, TextInput } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { IconRefresh } from "@tabler/icons-react";
+import { useState } from "react";
 import { z } from "zod";
 import { captchaFormSchema } from "../(utils)/schemas";
-import { useState } from "react";
+import { Captcha } from "../(utils)/types";
 
 function CaptchaFields({
   captchaForm,

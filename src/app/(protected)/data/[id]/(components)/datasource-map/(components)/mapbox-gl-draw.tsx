@@ -19,10 +19,10 @@ function MapboxGlDraw({
   position,
 }: {
   geojsonData?: FeatureCollection;
-  onCreate?: (e: DrawCreateEvent) => void;
-  onUpdate?: (e: DrawUpdateEvent) => void;
-  onDelete?: (e: DrawDeleteEvent) => void;
-  onSelect?: (e: DrawUpdateEvent) => void;
+  onCreate?: (_: DrawCreateEvent) => void;
+  onUpdate?: (_: DrawUpdateEvent) => void;
+  onDelete?: (_: DrawDeleteEvent) => void;
+  onSelect?: (_: DrawUpdateEvent) => void;
   controls?: MapboxDraw.MapboxDrawControls;
   position?: ControlPosition;
 }) {

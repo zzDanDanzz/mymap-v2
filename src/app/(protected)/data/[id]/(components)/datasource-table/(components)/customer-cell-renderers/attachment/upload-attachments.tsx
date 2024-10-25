@@ -66,7 +66,7 @@ function UploadAttachments({
   onUpload,
 }: {
   onCancel: () => void;
-  onUpload: (files: Attachment[]) => void;
+  onUpload: (_files: Attachment[]) => void;
 }) {
   const [files, setFiles] = useState<File[] | null>(null);
 

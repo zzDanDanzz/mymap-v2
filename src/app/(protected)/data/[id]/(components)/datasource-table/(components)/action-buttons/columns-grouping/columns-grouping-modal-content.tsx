@@ -36,7 +36,7 @@ function getUniqueGroupName({
   while (true) {
     const newGroupName = _getHeaderName(nameCount);
     const nameAlreadyExists = groupedColumns.some(
-      (col) => col.groupName === newGroupName,
+      (col) => col.groupName === newGroupName
     );
     if (nameAlreadyExists) nameCount++;
     if (!nameAlreadyExists) break;
@@ -60,7 +60,7 @@ function ColumnsGroupingModalContent({
   initialGroupedCols: GroupedColumn[];
   initialUngroupedCols: DatasourceColumn[];
   onCancel: () => void;
-  onSubmit: (columns: {
+  onSubmit: (_columns: {
     grouped: GroupedColumn[];
     ungrouped: DatasourceColumn[];
   }) => void;
@@ -129,12 +129,12 @@ function ColumnsGroupingModalContent({
   const [isEditingGroup, setIsEditingGroup] = useState(false);
 
   const [groupTransferListData, setGroupTransferListData] = useState(
-    INITIAL_GROUP_TRANSFER_LIST_DATA,
+    INITIAL_GROUP_TRANSFER_LIST_DATA
   );
 
   function handleEditGroupColumns(name: string) {
     const columnsInThisGroup = columns.grouped.find(
-      (g) => g.groupName === name,
+      (g) => g.groupName === name
     )?.columns;
 
     if (!columnsInThisGroup) return;
@@ -145,7 +145,7 @@ function ColumnsGroupingModalContent({
           id: c.name,
           label: c.name,
           context: c,
-        }) as Value,
+        } as Value)
     );
 
     const transferListRightValues = columns.ungrouped.map(
@@ -154,7 +154,7 @@ function ColumnsGroupingModalContent({
           id: c.name,
           label: c.name,
           context: c,
-        }) as Value,
+        } as Value)
     );
 
     setGroupTransferListData({
@@ -172,14 +172,14 @@ function ColumnsGroupingModalContent({
         titles: groupTransferListData.titles,
       });
     },
-    [groupTransferListData.titles],
+    [groupTransferListData.titles]
   );
 
   const onFinishEditingGroupColumns = useCallback(() => {
     const [newGroupedCols, newUngroupedColumns] =
       groupTransferListData.values as [
         Value<DatasourceColumn>[],
-        Value<DatasourceColumn>[],
+        Value<DatasourceColumn>[]
       ];
 
     const [editedGroupGroupName] = groupTransferListData.titles;
@@ -284,9 +284,9 @@ function GroupCard({
   onEditGroupChildren,
 }: {
   column: GroupedColumn;
-  onEditName: (newName: string) => void;
-  onGroupDelete: (name: string) => void;
-  onEditGroupChildren: (name: string) => void;
+  onEditName: (_newName: string) => void;
+  onGroupDelete: (_name: string) => void;
+  onEditGroupChildren: (_name: string) => void;
 }) {
   const [isEditingName, { open: _startEditingName, close: stopEditingName }] =
     useDisclosure(false);
