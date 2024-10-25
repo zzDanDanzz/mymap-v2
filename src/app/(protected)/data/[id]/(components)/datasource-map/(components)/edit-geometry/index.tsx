@@ -38,6 +38,13 @@ function EditGeometry({
     }
   }, [isEditingGeom]);
 
+  // reset geom edits when the component unmounts
+  useEffect(() => {
+    return () => {
+      setGeomEdits([]);
+    };
+  }, []);
+
   const onUpdateFeatures = useCallback((e: DrawUpdateEvent) => {
     const features = e.features;
 

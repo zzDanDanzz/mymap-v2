@@ -3,7 +3,16 @@
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 
-import { Box, Flex, Paper, Select } from "@mantine/core";
+import {
+  Alert,
+  Box,
+  Button,
+  Flex,
+  Group,
+  Paper,
+  Select,
+  Stack,
+} from "@mantine/core";
 import { useResizeObserver } from "@mantine/hooks";
 import urls from "@shared/api/urls";
 import { GEOMETRY_DATA_TYPES } from "@shared/constants/datasource.constants";
@@ -11,15 +20,16 @@ import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasour
 import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-rows";
 import { getUserXApiKey } from "@shared/utils/local-storage";
 import { feature, featureCollection } from "@turf/helpers";
-import { useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Map from "react-map-gl";
-import { selectedRowIdsAtom } from "../../(utils)/atoms";
+import { addingGeomModeAtom, selectedRowIdsAtom } from "../../(utils)/atoms";
 import EditGeometry from "./(components)/edit-geometry";
 import FitMapBoundsToGeojsonData from "./(components)/fit-map-bounds-to-geojson-data";
 import ReadOnlyGeometryLayer from "./(components)/read-only-geometry-layer";
 import ResizeMapToContainer from "./(components)/resize-map-to-container";
+import { IconInfoCircle } from "@tabler/icons-react";
 
 function DatasourceMap({ id }: { id: string }) {
   const { datasourceColumns } = useDatasourceColumns({ id });
@@ -78,6 +88,8 @@ function DatasourceMap({ id }: { id: string }) {
 
   const [mapContainerRef, mapContainerRect] = useResizeObserver();
 
+  const addingGeomMode = useAtomValue(addingGeomModeAtom);
+
   return (
     <Box ref={mapContainerRef} h={"100%"}>
       <Map
@@ -129,8 +141,8 @@ function DatasourceMap({ id }: { id: string }) {
               />
             </Paper>
 
-            <Paper p={"sm"} withBorder>
-              {geojsonData && (
+            {geojsonData && !addingGeomMode.isEnabled && (
+              <Paper p={"sm"} withBorder>
                 <EditGeometry
                   datasourceId={id}
                   isEditingGeom={isEditingGeom}
@@ -139,13 +151,43 @@ function DatasourceMap({ id }: { id: string }) {
                   selectedGeomColumn={selectedGeomColumn}
                   mutateDatasourceRows={datasourceRowsMutate}
                 />
-              )}
-            </Paper>
+              </Paper>
+            )}
           </Flex>
         )}
+
+        {addingGeomMode.isEnabled && <AddGeometry />}
       </Map>
     </Box>
   );
 }
 
+function AddGeometry() {
+  const [addingGeomMode, setAddingGeomMode] = useAtom(addingGeomModeAtom);
+  const onCancel = useCallback(() => {
+    setAddingGeomMode({ isEnabled: false });
+  }, [setAddingGeomMode]);
+
+  return (
+    <Flex pos={"absolute"} bottom={10} left={10} w={"calc(100% - 20px)"}>
+      <Paper p={"sm"} withBorder>
+        <Group wrap="nowrap">
+          <Alert title="رسم ژئومتری" icon={<IconInfoCircle />}>
+            {"شما در حال اضافه کردن ژئومتری در ردیف " +
+              addingGeomMode.rowId +
+              " به ستون " +
+              addingGeomMode.datasourceColumn?.name +
+              " هستید"}
+          </Alert>
+          <Stack>
+            <Button>ثبت</Button>
+            <Button onClick={onCancel} variant="light">
+              لغو
+            </Button>
+          </Stack>
+        </Group>
+      </Paper>
+    </Flex>
+  );
+}
 export default DatasourceMap;
