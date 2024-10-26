@@ -24,7 +24,7 @@ import { feature, featureCollection } from "@turf/helpers";
 import GeoJSON from "geojson";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Map from "react-map-gl";
 import { addingGeomModeAtom, selectedRowIdsAtom } from "../../(utils)/atoms";
 import EditGeometry from "./(components)/edit-geometry";
@@ -188,6 +188,44 @@ function AddGeometry() {
   const onCancel = useCallback(() => {
     setAddingGeomMode({ isEnabled: false });
   }, [setAddingGeomMode]);
+  const glDrawRef = useRef<MapboxDraw>();
+
+  const columnDataType = useMemo(() => {
+    const FALLBACK = "geometry";
+    return (
+      addingGeomMode.datasourceColumn?.data_type ?? FALLBACK
+    ).toLowerCase();
+  }, [addingGeomMode.datasourceColumn?.data_type]);
+
+  const onCreate = useCallback(
+    (e: MapboxDraw.DrawCreateEvent) => {
+      console.log({
+        "addingGeomMode.datasourceColumn?.name":
+          addingGeomMode.datasourceColumn?.name,
+      });
+
+      const lastAddedFeature = e.features[e.features.length - 1];
+
+      const isMulti =
+        columnDataType.includes("multi") ||
+        columnDataType.includes("collection");
+
+      if (!isMulti) {
+        const features = glDrawRef.current?.getAll().features ?? [];
+        if (features.length > 1) {
+          // delete all features except the most recently addded one
+          features.forEach((feature) => {
+            if (feature.id !== lastAddedFeature.id) {
+              glDrawRef.current?.delete(
+                (feature as GeoJSON.Feature & { id: string }).id
+              );
+            }
+          });
+        }
+      }
+    },
+    [addingGeomMode.datasourceColumn?.name, columnDataType]
+  );
 
   return (
     <>
@@ -212,10 +250,10 @@ function AddGeometry() {
       </Flex>
 
       <MapboxGlDraw
-        controls={getControls(
-          addingGeomMode.datasourceColumn?.data_type ?? "geometry"
-        )}
+        controls={getControls(columnDataType)}
+        onCreate={onCreate}
         position="top-right"
+        ref={glDrawRef}
       />
     </>
   );

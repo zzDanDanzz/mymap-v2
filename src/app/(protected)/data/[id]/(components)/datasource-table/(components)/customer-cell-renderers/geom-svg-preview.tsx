@@ -1,16 +1,16 @@
-import { useMantineTheme } from "@mantine/core";
+// @ts-ignore No type available
+import rewind from "@mapbox/geojson-rewind";
+
+import { addingGeomModeAtom } from "@/data/[id]/(utils)/atoms";
+import { Pill, useMantineTheme } from "@mantine/core";
 import { bbox as getBbox } from "@turf/turf";
 import { CustomCellRendererProps } from "ag-grid-react";
 import * as d3 from "d3";
 import { Geometry } from "geojson";
+import { useAtom } from "jotai";
 import { useEffect, useRef } from "react";
 import { useMap } from "react-map-gl";
 import EmptyCellWithAdd from "../empty-cell-with-add";
-
-// @ts-ignore No type available
-import rewind from "@mapbox/geojson-rewind";
-import { useSetAtom } from "jotai";
-import { addingGeomModeAtom } from "@/data/[id]/(utils)/atoms";
 
 function SVGPreview({ geom }: { geom: Geometry }) {
   const theme = useMantineTheme();
@@ -109,15 +109,22 @@ function FitboundsOnClickWrapper({
 
 function GeomSvgPreview(props: CustomCellRendererProps) {
   const geom = props.value;
-  const setAddingGeomMode = useSetAtom(addingGeomModeAtom);
+  const [addingGeomMode, setAddingGeomMode] = useAtom(addingGeomModeAtom);
 
   if (!geom || typeof geom !== "object") {
+    const apiColumnData = props.colDef?.context?.apiColumnData;
+
+    if (
+      addingGeomMode.isEnabled &&
+      addingGeomMode.datasourceColumn?.name === apiColumnData?.name
+    ) {
+      return <Pill>در حال افزودن...</Pill>;
+    }
     return (
       <EmptyCellWithAdd
         onAdd={() => {
           const cellColumnName = props.colDef?.field;
           const rowId = props.data.id;
-          const apiColumnData = props.colDef?.context?.apiColumnData;
 
           if (!cellColumnName) {
             return;

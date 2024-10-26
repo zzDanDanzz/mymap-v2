@@ -12,9 +12,13 @@ import { addColumnSchema } from "./schemas";
 
 export async function addDatasourceColumn(
   datasourceID: string,
-  column: z.infer<typeof addColumnSchema>,
+  column: z.infer<typeof addColumnSchema>
 ) {
   const url = `${urls.editorTables}/${datasourceID}/columns`;
+
+  if (column.is_nullable) {
+    column.default_value = undefined;
+  }
 
   const body = {
     columns: [column],
@@ -27,7 +31,7 @@ export async function addDatasourceColumn(
   const res = await ax.post<ODataResponse<DatasourceColumn>>(
     url,
     body,
-    options,
+    options
   );
 
   if (res.status >= 200 && res.status < 300 && res.data?.value?.length > 0) {

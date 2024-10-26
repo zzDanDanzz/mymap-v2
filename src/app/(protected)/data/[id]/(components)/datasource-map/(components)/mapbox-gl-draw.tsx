@@ -5,19 +5,18 @@ import MapboxDraw, {
   DrawUpdateEvent,
 } from "@mapbox/mapbox-gl-draw";
 import type { FeatureCollection } from "geojson";
-import { useCallback, useEffect, useMemo } from "react";
+import {
+  ForwardedRef,
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+} from "react";
 import { ControlPosition, MapInstance, useControl, useMap } from "react-map-gl";
 import getGlDrawStyles from "../(utils)/gl-draw-styles";
 
-function MapboxGlDraw({
-  geojsonData,
-  onUpdate,
-  onDelete,
-  onSelect,
-  onCreate,
-  controls,
-  position,
-}: {
+type MapboxGlDrawProps = {
   geojsonData?: FeatureCollection;
   onCreate?: (_: DrawCreateEvent) => void;
   onUpdate?: (_: DrawUpdateEvent) => void;
@@ -25,7 +24,22 @@ function MapboxGlDraw({
   onSelect?: (_: DrawUpdateEvent) => void;
   controls?: MapboxDraw.MapboxDrawControls;
   position?: ControlPosition;
-}) {
+};
+
+function _MapboxGlDraw(
+  props: MapboxGlDrawProps,
+  ref: ForwardedRef<MapboxDraw | undefined>
+) {
+  const {
+    geojsonData,
+    onUpdate,
+    onDelete,
+    onSelect,
+    onCreate,
+    controls,
+    position,
+  } = props;
+
   const theme = useMantineTheme();
   const { current: mapRef } = useMap();
 
@@ -74,6 +88,8 @@ function MapboxGlDraw({
     controlOptions
   );
 
+  useImperativeHandle(ref, () => draw, [draw]);
+
   // add features to gl-draw if editing geom
   useEffect(() => {
     if (geojsonData && draw && mapRef?.hasControl(draw)) {
@@ -89,5 +105,7 @@ function MapboxGlDraw({
 
   return null;
 }
+
+const MapboxGlDraw = forwardRef(_MapboxGlDraw);
 
 export default MapboxGlDraw;
