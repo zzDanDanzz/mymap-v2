@@ -338,7 +338,7 @@ function GroupCard({
               }}
               leftSection={
                 <IconLayoutColumns
-                  style={{ width: rem(14), height: rem(14) }}
+                  style={{ width: rem(16), height: rem(16) }}
                 />
               }
             >
@@ -347,7 +347,7 @@ function GroupCard({
             <Menu.Item
               onClick={startEditingName}
               leftSection={
-                <IconPencil style={{ width: rem(14), height: rem(14) }} />
+                <IconPencil style={{ width: rem(16), height: rem(16) }} />
               }
             >
               ویرایش نام
@@ -356,7 +356,7 @@ function GroupCard({
               onClick={() => onGroupDelete(column.groupName)}
               color="red"
               leftSection={
-                <IconTrash style={{ width: rem(14), height: rem(14) }} />
+                <IconTrash style={{ width: rem(16), height: rem(16) }} />
               }
             >
               حذف

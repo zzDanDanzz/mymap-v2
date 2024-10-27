@@ -65,6 +65,28 @@ export async function updateDatasourceColumn({
   return { success: false };
 }
 
+export async function deleteDatasourceColumn({
+  datasourceId,
+  columnID,
+}: {
+  datasourceId: string;
+  columnID: string;
+}) {
+  const url = `${urls.editorTables}/${datasourceId}/columns/${columnID}`;
+
+  const options = {
+    headers: getCommonHeaders(),
+  };
+
+  const res = await ax.delete(url, options);
+
+  if (res.status >= 200 && res.status < 300) {
+    return { success: true };
+  }
+
+  return { success: false };
+}
+
 export async function exportDatasourceTable({
   tableName,
   query,
