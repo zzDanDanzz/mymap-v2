@@ -16,10 +16,6 @@ export async function addDatasourceColumn(
 ) {
   const url = `${urls.editorTables}/${datasourceID}/columns`;
 
-  if (column.is_nullable) {
-    column.default_value = undefined;
-  }
-
   const body = {
     columns: [column],
   };

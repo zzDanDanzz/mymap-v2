@@ -9,7 +9,7 @@ import notify from "@shared/utils/toasts";
 import { zodResolver } from "mantine-form-zod-resolver";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import { z } from "zod";
 
 export default function Page() {
@@ -27,25 +27,20 @@ export default function Page() {
       mobile,
     },
     validate: zodResolver(checkOtpFormSchema),
+    enhanceGetInputProps() {
+      return { disabled: loading };
+    },
   });
 
-  async function onSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-
+  async function handleSubmit(values: z.infer<typeof checkOtpFormSchema>) {
     if (!form.values.mobile) {
       router.push("/login/otp");
       return;
     }
 
-    const { hasErrors } = form.validate();
-    if (hasErrors) return;
-
     setLoading(true);
 
-    const { success, refreshToken, sessionToken } = await checkOTP({
-      mobile,
-      token: form.values.token,
-    });
+    const { success, refreshToken, sessionToken } = await checkOTP(values);
 
     if (success) {
       login({ sessionToken, refreshToken });
@@ -57,7 +52,7 @@ export default function Page() {
   }
 
   return (
-    <form onSubmit={onSubmit}>
+    <form onSubmit={form.onSubmit(handleSubmit)}>
       <Stack>
         <Text>پیام برای {mobile} ارسال شد.</Text>
 
@@ -69,7 +64,7 @@ export default function Page() {
           {...form.getInputProps("token")}
         />
 
-        <Button type="submit" disabled={loading}>
+        <Button type="submit" loading={loading}>
           ورود
         </Button>
 

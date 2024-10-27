@@ -7,16 +7,19 @@ export const addColumnSchema = z
     is_nullable: z.boolean().default(true),
     default_value: z.string().optional(),
   })
+  /**
+   * if `is_nullable` is `false`, then `default_value` must be provided.
+   */
   .refine(
     (data) => {
       let isValid = true;
 
       // if is_nullable is true, must provide default_value
-      if (data.is_nullable === true && data.default_value === undefined) {
+      if (data.is_nullable === false && !data.default_value) {
         isValid = false;
       }
 
       return isValid;
     },
-    { message: "مقدار پیش‌فرض نمی‌تواند خالی باشد" },
+    { message: "مقدار پیش‌فرض نمی‌تواند خالی باشد", path: ["default_value"] }
   );

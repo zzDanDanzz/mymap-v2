@@ -6,10 +6,10 @@ import notify from "@shared/utils/toasts";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import queryString from "query-string";
-import { FormEvent, useState } from "react";
+import { useState } from "react";
+import { z } from "zod";
 import { sendOTP } from "../(utils)/api";
 import { sendOtpFormSchema } from "../(utils)/schemas";
-import { z } from "zod";
 
 export default function Page() {
   const [loading, setLoading] = useState(false);
@@ -21,15 +21,14 @@ export default function Page() {
       mobile: "",
     },
     validate: zodResolver(sendOtpFormSchema),
+    enhanceGetInputProps() {
+      return { disabled: loading };
+    },
   });
 
-  async function onSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const { hasErrors } = form.validate();
-    if (hasErrors) return;
-
+  async function handleSubmit(values: z.infer<typeof sendOtpFormSchema>) {
     setLoading(true);
-    const { success } = await sendOTP(form.values);
+    const { success } = await sendOTP(values);
 
     if (success) {
       router.push(`${pathname}/verify?${queryString.stringify(form.values)}`);
@@ -41,7 +40,7 @@ export default function Page() {
   }
 
   return (
-    <form onSubmit={onSubmit}>
+    <form onSubmit={form.onSubmit(handleSubmit)}>
       <Stack>
         <TextInput
           type="tel"
@@ -49,7 +48,7 @@ export default function Page() {
           {...form.getInputProps("mobile")}
         />
 
-        <Button type="submit" disabled={loading}>
+        <Button type="submit" loading={loading}>
           دریافت کد
         </Button>
 

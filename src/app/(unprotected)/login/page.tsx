@@ -5,7 +5,7 @@ import useLogin from "@shared/hooks/auth/use-login";
 import notify from "@shared/utils/toasts";
 import { zodResolver } from "mantine-form-zod-resolver";
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import { z } from "zod";
 import CaptchaFields from "./(components)/captcha-form";
 import { getCaptcha, passwordLogin } from "./(utils)/api";
@@ -23,6 +23,9 @@ export default function Page() {
       password: "",
     },
     validate: zodResolver(passwordLoginFormSchema),
+    enhanceGetInputProps() {
+      return { disabled: loading };
+    },
   });
 
   const captchaForm = useForm<z.infer<typeof captchaFormSchema>>({
@@ -30,6 +33,9 @@ export default function Page() {
       captchaSolution: "",
     },
     validate: zodResolver(captchaFormSchema),
+    enhanceGetInputProps() {
+      return { disabled: loading };
+    },
   });
 
   async function handleRequiresCaptcha() {
@@ -41,11 +47,10 @@ export default function Page() {
     }
   }
 
-  async function onSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const { hasErrors } = form.validate();
-    if (hasErrors) return;
-
+  async function handleSubmit({
+    username,
+    password,
+  }: z.infer<typeof passwordLoginFormSchema>) {
     if (captcha) {
       const { hasErrors } = captchaForm.validate();
       if (hasErrors) return;
@@ -55,8 +60,8 @@ export default function Page() {
 
     const { success, message, refreshToken, sessionToken, requiresCaptcha } =
       await passwordLogin({
-        username: form.values.username,
-        password: form.values.password,
+        username,
+        password,
         captchaSolution: captchaForm.values.captchaSolution,
         captchaId: captcha?.id,
       });
@@ -74,7 +79,7 @@ export default function Page() {
   }
 
   return (
-    <form onSubmit={onSubmit}>
+    <form onSubmit={form.onSubmit(handleSubmit)}>
       <Stack>
         <TextInput label="نام کاربری" {...form.getInputProps("username")} />
         <PasswordInput label="رمز عبور" {...form.getInputProps("password")} />

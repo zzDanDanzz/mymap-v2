@@ -1,3 +1,4 @@
+import type { SelectProps } from "@mantine/core";
 import {
   Button,
   Group,
@@ -7,23 +8,22 @@ import {
   Switch,
   TextInput,
 } from "@mantine/core";
-import type { SelectProps } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { IconColumnInsertLeft, IconRowInsertBottom } from "@tabler/icons-react";
-import { zodResolver } from "mantine-form-zod-resolver";
-import { useMemo, useState } from "react";
-import { addColumnSchema } from "../../(utils)/schemas";
 import {
   ALL_DATA_TYPES,
   DATA_TYPES_BY_CATEGORY,
   DATA_TYPE_CATEGORIES_TRANSLATIONS,
 } from "@shared/constants/datasource.constants";
+import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasource-columns";
+import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-rows";
+import notify from "@shared/utils/toasts";
+import { IconColumnInsertLeft, IconRowInsertBottom } from "@tabler/icons-react";
+import { zodResolver } from "mantine-form-zod-resolver";
+import { useParams } from "next/navigation";
+import { useMemo, useState } from "react";
 import { z } from "zod";
 import { addDatasourceColumn } from "../../(utils)/api";
-import { useParams } from "next/navigation";
-import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasource-columns";
-import notify from "@shared/utils/toasts";
-import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-rows";
+import { addColumnSchema } from "../../(utils)/schemas";
 
 function AddColumn({ onSuccess }: { onSuccess: () => void }) {
   const { id: datasourceID } = useParams<{ id: string }>();
@@ -43,9 +43,20 @@ function AddColumn({ onSuccess }: { onSuccess: () => void }) {
       name: "",
       data_type: "string" as (typeof ALL_DATA_TYPES)[number],
       is_nullable: true,
-      default_value: "",
+      default_value: undefined,
     },
     validate: zodResolver(addColumnSchema),
+    /**
+     * if `is_nullable` is `true`, then `default_value` must be undefined so that it won't be sent to the server with axios
+     * not done with zod because mantine-form-zod-resolver doesn't seem to support it
+     */
+    transformValues: (values) => ({
+      ...values,
+      default_value: values.is_nullable ? undefined : values.default_value,
+    }),
+    enhanceGetInputProps() {
+      return { disabled: loading };
+    },
   });
 
   const selectOptions: SelectProps["data"] = useMemo(
@@ -57,7 +68,7 @@ function AddColumn({ onSuccess }: { onSuccess: () => void }) {
             category as keyof typeof DATA_TYPES_BY_CATEGORY
           ],
       })),
-    [],
+    []
   );
 
   async function handleSubmit(values: z.infer<typeof addColumnSchema>) {
