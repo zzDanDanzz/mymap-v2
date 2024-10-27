@@ -9,8 +9,8 @@ import { FeatureCollection } from "geojson";
 import { useSetAtom } from "jotai";
 import { useCallback, useEffect, useState } from "react";
 import { KeyedMutator } from "swr";
-import { GeomEdit } from "../../(utils)/types";
-import MapboxGlDraw from "../mapbox-gl-draw";
+import { GeomEdit } from "../(utils)/types";
+import MapboxGlDraw from "./mapbox-gl-draw";
 
 function EditGeometry({
   isEditingGeom,

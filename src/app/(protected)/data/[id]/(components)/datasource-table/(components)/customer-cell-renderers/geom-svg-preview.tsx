@@ -107,37 +107,55 @@ function FitboundsOnClickWrapper({
   );
 }
 
-function GeomSvgPreview(props: CustomCellRendererProps) {
-  const geom = props.value;
+function EmptyCell(props: CustomCellRendererProps) {
+  const apiColumnData = props.colDef?.context?.apiColumnData;
   const [addingGeomMode, setAddingGeomMode] = useAtom(addingGeomModeAtom);
 
-  if (!geom || typeof geom !== "object") {
-    const apiColumnData = props.colDef?.context?.apiColumnData;
-
+  if (addingGeomMode.isEnabled) {
     if (
-      addingGeomMode.isEnabled &&
-      addingGeomMode.datasourceColumn?.name === apiColumnData?.name
-    ) {
-      return <Pill>در حال افزودن...</Pill>;
-    }
-    return (
-      <EmptyCellWithAdd
-        onAdd={() => {
-          const cellColumnName = props.colDef?.field;
-          const rowId = props.data.id;
+      addingGeomMode.datasourceColumn?.name === apiColumnData?.name &&
+      addingGeomMode.rowId === props.data.id
+    )
+      return (
+        <Pill
+          withRemoveButton
+          onRemove={() => {
+            setAddingGeomMode({
+              isEnabled: false,
+            });
+          }}
+        >
+          در حال افزودن...
+        </Pill>
+      );
+    else return null;
+  }
 
-          if (!cellColumnName) {
-            return;
-          }
+  return (
+    <EmptyCellWithAdd
+      onAdd={() => {
+        const cellColumnName = props.colDef?.field;
+        const rowId = props.data.id;
 
-          setAddingGeomMode({
-            isEnabled: true,
-            datasourceColumn: apiColumnData,
-            rowId,
-          });
-        }}
-      />
-    );
+        if (!cellColumnName) {
+          return;
+        }
+
+        setAddingGeomMode({
+          isEnabled: true,
+          datasourceColumn: apiColumnData,
+          rowId,
+        });
+      }}
+    />
+  );
+}
+
+function GeomSvgPreview(props: CustomCellRendererProps) {
+  const geom = props.value;
+
+  if (!geom || typeof geom !== "object") {
+    return <EmptyCell {...props} />;
   }
 
   return (
