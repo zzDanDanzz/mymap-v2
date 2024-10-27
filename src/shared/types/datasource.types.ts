@@ -50,7 +50,7 @@ export interface DatasourceRow {
   [key: string]: any;
 }
 
-type GeomColDataType =
+export type GeomColDataType =
   | "point"
   | "linestring"
   | "polygon"

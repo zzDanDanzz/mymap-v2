@@ -1,17 +1,27 @@
 import { addingGeomModeAtom } from "@/data/[id]/(utils)/atoms";
-import { Flex, Paper, Group, Alert, Stack, Button } from "@mantine/core";
+import { Alert, Button, Flex, Group, Paper, Stack } from "@mantine/core";
+import { DatasourceRow, GeomColDataType } from "@shared/types/datasource.types";
 import { IconInfoCircle } from "@tabler/icons-react";
+import {
+  combine as createdCombinedFeatureCollection,
+  featureCollection as createFeatureCollection,
+  geometryCollection as createGeometryCollection,
+} from "@turf/turf";
+import { Feature } from "geojson";
 import { useAtom } from "jotai";
-import { useCallback, useRef, useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import MapboxGlDraw from "./mapbox-gl-draw";
+import { updateDatasourceRow } from "@/data/[id]/(utils)/api";
+import { ODataResponse } from "@shared/types/api.types";
+import { KeyedMutator } from "swr";
 
-const getControls = (dataType: string) => {
+const getControls = (dataType: GeomColDataType) => {
   const pointControls = { point: true };
   const lineControls = { line_string: true };
   const polygonControls = { polygon: true };
   const allControls = { ...pointControls, ...lineControls, ...polygonControls };
 
-  const map: Record<string, MapboxDraw.MapboxDrawControls> = {
+  const map: Record<GeomColDataType, MapboxDraw.MapboxDrawControls> = {
     point: pointControls,
     multipoint: pointControls,
     linestring: lineControls,
@@ -24,19 +34,33 @@ const getControls = (dataType: string) => {
   return map[dataType];
 };
 
-function AddGeometry() {
+function AddGeometry({
+  datasourceId,
+  mutateDatasourceRows,
+}: {
+  datasourceId: string;
+  mutateDatasourceRows: KeyedMutator<ODataResponse<DatasourceRow>>;
+}) {
   const [addingGeomMode, setAddingGeomMode] = useAtom(addingGeomModeAtom);
-  const onCancel = useCallback(() => {
-    setAddingGeomMode({ isEnabled: false });
-  }, [setAddingGeomMode]);
+
   const glDrawRef = useRef<MapboxDraw>();
 
   const columnDataType = useMemo(() => {
     const FALLBACK = "geometry";
     return (
       addingGeomMode.datasourceColumn?.data_type ?? FALLBACK
-    ).toLowerCase();
+    ).toLowerCase() as GeomColDataType;
   }, [addingGeomMode.datasourceColumn?.data_type]);
+
+  const isMulti = useMemo(() => {
+    return (
+      columnDataType.includes("multi") || columnDataType.includes("collection")
+    );
+  }, [columnDataType]);
+
+  const onCancel = useCallback(() => {
+    setAddingGeomMode({ isEnabled: false });
+  }, [setAddingGeomMode]);
 
   const onCreate = useCallback(
     (e: MapboxDraw.DrawCreateEvent) => {
@@ -46,10 +70,6 @@ function AddGeometry() {
       });
 
       const lastAddedFeature = e.features[e.features.length - 1];
-
-      const isMulti =
-        columnDataType.includes("multi") ||
-        columnDataType.includes("collection");
 
       if (!isMulti) {
         const features = glDrawRef.current?.getAll().features ?? [];
@@ -65,8 +85,73 @@ function AddGeometry() {
         }
       }
     },
-    [addingGeomMode.datasourceColumn?.name, columnDataType]
+    [addingGeomMode.datasourceColumn?.name, isMulti]
   );
+
+  const onSubmit = useCallback(async () => {
+    const cellColumnName = addingGeomMode.datasourceColumn?.name;
+    const rowId = addingGeomMode.rowId;
+
+    if (!cellColumnName || !rowId) {
+      return;
+    }
+
+    const getFeatureCollection = () => {
+      const feats = (glDrawRef.current?.getAll?.()?.features ?? []) as Feature<
+        GeoJSON.Point | GeoJSON.LineString | GeoJSON.Polygon
+      >[];
+      const featCol = createFeatureCollection(feats);
+      return featCol;
+    };
+
+    const featureCollection = getFeatureCollection();
+
+    let updatedCellData: GeoJSON.Geometry | GeoJSON.GeometryCollection;
+
+    /**
+     * assume column data type is multi(point|line|polygon)
+     * and mapbox-gl-draw has returned a feature collection of features of type=point|line|polygon respectively
+     * so turf must combine all into a single multi(point|line|polygon) feature respectively
+     * which is why we only need the first feature in the feature collection
+     */
+    if (columnDataType.includes("multi")) {
+      const combined = createdCombinedFeatureCollection(featureCollection);
+      updatedCellData = combined.features[0].geometry;
+    }
+
+    /**
+     * assume column data type is geometrycollection
+     * else it's any of the singlar geom types = point|line|polygon|geometry
+     * and for the singular geom types, we don't allow more than one feature in the feature collection
+     */
+    if (columnDataType.includes("collection")) {
+      const geometries = featureCollection.features.map(
+        (feature) => feature.geometry
+      );
+      const geometryCollectionFeature = createGeometryCollection(geometries);
+      updatedCellData = geometryCollectionFeature.geometry;
+    } else {
+      updatedCellData = featureCollection.features[0].geometry;
+    }
+
+    await updateDatasourceRow({
+      datasourceId,
+      cellColumnName,
+      rowId,
+      updatedCellData,
+    });
+
+    await mutateDatasourceRows();
+
+    setAddingGeomMode({ isEnabled: false });
+  }, [
+    addingGeomMode.datasourceColumn?.name,
+    addingGeomMode.rowId,
+    columnDataType,
+    datasourceId,
+    mutateDatasourceRows,
+    setAddingGeomMode,
+  ]);
 
   return (
     <>
@@ -81,7 +166,7 @@ function AddGeometry() {
                 " هستید"}
             </Alert>
             <Stack>
-              <Button>ثبت</Button>
+              <Button onClick={onSubmit}>ثبت</Button>
               <Button onClick={onCancel} variant="light">
                 لغو
               </Button>

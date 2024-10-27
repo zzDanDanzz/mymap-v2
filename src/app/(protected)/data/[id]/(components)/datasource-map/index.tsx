@@ -130,6 +130,9 @@ function DatasourceMap({ id }: { id: string }) {
                   value: name,
                   label: name,
                 }))}
+                onChange={(v) => {
+                  setSelectedGeomColumn(v ?? undefined);
+                }}
               />
             </Paper>
 
@@ -148,7 +151,12 @@ function DatasourceMap({ id }: { id: string }) {
           </Flex>
         )}
 
-        {addingGeomMode.isEnabled && <AddGeometry />}
+        {addingGeomMode.isEnabled && (
+          <AddGeometry
+            datasourceId={id}
+            mutateDatasourceRows={datasourceRowsMutate}
+          />
+        )}
       </Map>
     </Box>
   );
