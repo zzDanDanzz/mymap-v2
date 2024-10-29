@@ -83,7 +83,12 @@ function DataTypePickerDropdown({
           offsetScrollbars
           pos={"relative"}
         >
-          <LoadingOverlay visible={loading} />
+          <LoadingOverlay
+            visible={loading}
+            loaderProps={{
+              size: "sm",
+            }}
+          />
           {Object.keys(DATA_TYPES_BY_CATEGORY).map((category) => (
             <React.Fragment key={category}>
               <Group gap={0}>
@@ -160,7 +165,12 @@ function ColumnOptionsMenu({
       </Menu.Target>
 
       <Menu.Dropdown>
-        <LoadingOverlay visible={loading} />
+        <LoadingOverlay
+          visible={loading}
+          loaderProps={{
+            size: "sm",
+          }}
+        />
         <Menu.Item
           color="red"
           leftSection={
