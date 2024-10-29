@@ -3,16 +3,34 @@ import rewind from "@mapbox/geojson-rewind";
 
 import { addingGeomModeAtom } from "@/data/[id]/(utils)/atoms";
 import { Pill, useMantineTheme } from "@mantine/core";
-import { bbox as getBbox } from "@turf/turf";
+import { DatasourceGeomCellType } from "@shared/types/datasource.types";
+import { feature, bbox as getBbox } from "@turf/turf";
 import { CustomCellRendererProps } from "ag-grid-react";
 import * as d3 from "d3";
-import { Geometry } from "geojson";
+import { Feature, Geometry, GeometryCollection } from "geojson";
 import { useAtom } from "jotai";
 import { useEffect, useRef } from "react";
 import { useMap } from "react-map-gl";
 import EmptyCellWithAdd from "../empty-cell-with-add";
 
-function SVGPreview({ geom }: { geom: Geometry }) {
+function normalize(geom: DatasourceGeomCellType) {
+  let res: Feature | Feature[];
+
+  const isGeomCollection =
+    !Array.isArray(geom) && geom.type === "GeometryCollection";
+
+  if (isGeomCollection) {
+    res = (geom as GeometryCollection).geometries.map((g) => feature(g));
+  }
+
+  res = feature(
+    geom as Exclude<DatasourceGeomCellType, Geometry[] | undefined>
+  );
+
+  return res;
+}
+
+function SVGPreview({ geom }: { geom: DatasourceGeomCellType }) {
   const theme = useMantineTheme();
   const color = theme.colors[theme.primaryColor][5];
   const svgRef = useRef(null);
@@ -29,7 +47,9 @@ function SVGPreview({ geom }: { geom: Geometry }) {
         .attr("width", width)
         .attr("height", height);
 
-      const _geoJson = rewind(geom, true);
+      const normalizedGeom = normalize(geom);
+      const _geoJson = rewind(normalizedGeom, true);
+      console.log("🚀 ~ useEffect ~ _geoJson:", _geoJson);
 
       // const color = ['#EA4C89', '#15aee7', '#A9E5BB', '#F7B32B', '#2D1E2F'][
       //   index

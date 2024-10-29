@@ -7,7 +7,7 @@ import { DatasourceRow } from "@shared/types/datasource.types";
 import notify from "@shared/utils/toasts";
 import { Feature, FeatureCollection } from "geojson";
 import { useSetAtom } from "jotai";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { KeyedMutator } from "swr";
 import { GeomEdit } from "../(utils)/types";
 import MapboxGlDraw from "./mapbox-gl-draw";

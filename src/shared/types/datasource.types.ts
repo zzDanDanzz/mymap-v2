@@ -74,3 +74,8 @@ type NonGeomColDataType =
   | "attachment";
 
 export type ColumnDataType = GeomColDataType | NonGeomColDataType;
+
+export type DatasourceGeomCellType =
+  | GeoJSON.Geometry
+  | GeoJSON.Geometry[]
+  | GeoJSON.GeometryCollection;

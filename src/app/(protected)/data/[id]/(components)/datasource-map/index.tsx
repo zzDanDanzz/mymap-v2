@@ -11,7 +11,7 @@ import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasour
 import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-rows";
 import { getUserXApiKey } from "@shared/utils/local-storage";
 import { feature, featureCollection } from "@turf/helpers";
-import GeoJSON from "geojson";
+import GeoJSON, { Geometry, GeometryCollection } from "geojson";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -22,6 +22,7 @@ import FitMapBoundsToGeojsonData from "./(components)/fit-map-bounds-to-geojson-
 import ReadOnlyGeometryLayer from "./(components)/read-only-geometry-layer";
 import ResizeMapToContainer from "./(components)/resize-map-to-container";
 import AddGeometry from "./(components)/add-geometry";
+import { DatasourceGeomCellType } from "@shared/types/datasource.types";
 
 function DatasourceMap({ id }: { id: string }) {
   const { datasourceColumns } = useDatasourceColumns({ id });
@@ -59,14 +60,34 @@ function DatasourceMap({ id }: { id: string }) {
 
     const geoms = datasourceRows
       .map((row) => {
-        const geom = row[selectedGeomColumn];
-        if (geom?.type) {
-          return feature(geom, { id: row.id });
+        type GeomArray = Geometry[];
+
+        const geom = row[selectedGeomColumn] as
+          | DatasourceGeomCellType
+          | undefined;
+
+        if (!geom) return;
+
+        const isGeomCollection =
+          !Array.isArray(geom) && geom.type === "GeometryCollection";
+
+        if (isGeomCollection) {
+          return (geom as GeometryCollection).geometries.map((g) =>
+            feature(g, { id: row.id })
+          );
         }
+
+        return feature(
+          geom as Exclude<DatasourceGeomCellType, GeomArray | undefined>,
+          {
+            id: row.id,
+          }
+        );
       })
       .filter(Boolean) as GeoJSON.Feature<any, GeoJSON.GeoJsonProperties>[];
 
-    return featureCollection(geoms);
+    // flaten because of GeometryCollection creating an array of arrays
+    return featureCollection(geoms.flat());
   }, [datasourceRows, selectedGeomColumn]);
 
   const [isEditingGeom, setIsEditingGeom] = useState(false);
