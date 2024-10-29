@@ -5,12 +5,91 @@ import { DrawDeleteEvent, DrawUpdateEvent } from "@mapbox/mapbox-gl-draw";
 import { ODataResponse } from "@shared/types/api.types";
 import { DatasourceRow } from "@shared/types/datasource.types";
 import notify from "@shared/utils/toasts";
-import { FeatureCollection } from "geojson";
+import { Feature, FeatureCollection } from "geojson";
 import { useSetAtom } from "jotai";
 import { useCallback, useEffect, useState } from "react";
 import { KeyedMutator } from "swr";
 import { GeomEdit } from "../(utils)/types";
 import MapboxGlDraw from "./mapbox-gl-draw";
+
+enum EditGeometryOperation {
+  UPDATE = "update",
+  DELETE = "delete",
+}
+
+function prepareFeaturesForGeomEdit(
+  operation: EditGeometryOperation,
+  features: Feature[]
+) {
+  switch (operation) {
+    case "delete":
+      return features
+        .map((f) => {
+          const id = f.properties?.id;
+          if (!id) return;
+
+          return {
+            id,
+            type: "delete",
+          };
+        })
+        .filter(Boolean) as GeomEdit[];
+    case "update":
+      return features
+        .map((f) => {
+          const id = f.properties?.id;
+          if (!id) return;
+
+          return {
+            id,
+            type: "modify",
+            modifiedFeature: f,
+          };
+        })
+        .filter(Boolean) as GeomEdit[];
+    default:
+      throw new Error("Invalid operation");
+  }
+}
+
+function getRequestsForGeomEdits(
+  geomEdits: GeomEdit[],
+  datasourceId: string,
+  selectedGeomColumn: string
+) {
+  const sharedOptions = {
+    datasourceId,
+    cellColumnName: selectedGeomColumn,
+  };
+
+  const deletionOperations = geomEdits
+    .filter(({ type }) => type === "delete")
+    .map((edit) => {
+      return updateDatasourceRow({
+        ...sharedOptions,
+        rowId: edit.id,
+        updatedCellData: null,
+      });
+    });
+
+  const __deletedIds = geomEdits
+    .filter(({ type }) => type === "delete")
+    .map(({ id }) => id);
+
+  const updateOperations = geomEdits
+    .filter(({ type }) => type === "modify")
+    // remove update operations for features that have been deleted
+    .filter((edit) => !__deletedIds.includes(edit.id))
+    .map((edit) => {
+      return updateDatasourceRow({
+        ...sharedOptions,
+        rowId: edit.id,
+        updatedCellData: edit.modifiedFeature.geometry,
+      });
+    });
+
+  return [...deletionOperations, ...updateOperations];
+}
 
 function EditGeometry({
   isEditingGeom,
@@ -48,18 +127,10 @@ function EditGeometry({
   const onUpdateFeatures = useCallback((e: DrawUpdateEvent) => {
     const features = e.features;
 
-    const updated = features
-      .map((f) => {
-        const id = f.properties?.id;
-        if (!id) return;
-
-        return {
-          id,
-          type: "modify",
-          modifiedFeature: f,
-        };
-      })
-      .filter(Boolean) as GeomEdit[];
+    const updated = prepareFeaturesForGeomEdit(
+      EditGeometryOperation.UPDATE,
+      features
+    );
 
     setGeomEdits((prev) => [...prev, ...updated]);
   }, []);
@@ -68,18 +139,10 @@ function EditGeometry({
     (e: DrawDeleteEvent) => {
       const features = e.features;
 
-      const deleted = features
-        .map((f) => {
-          const id = f.properties?.id;
-          if (!id) return;
-
-          return {
-            id,
-            type: "delete",
-          };
-        })
-        .filter(Boolean) as GeomEdit[];
-
+      const deleted = prepareFeaturesForGeomEdit(
+        EditGeometryOperation.DELETE,
+        features
+      );
       // remove deleted features from selected row ids
       setSelectedRowIdsAtom((prev) => {
         const deletedIds = deleted.map((d) => d.id);
@@ -106,41 +169,13 @@ function EditGeometry({
 
     setIsLoading(true);
 
-    const sharedOptions = {
+    const requests = getRequestsForGeomEdits(
+      geomEdits,
       datasourceId,
-      cellColumnName: selectedGeomColumn,
-    };
+      selectedGeomColumn
+    );
 
-    const deletionOperations = geomEdits
-      .filter(({ type }) => type === "delete")
-      .map((edit) => {
-        return updateDatasourceRow({
-          ...sharedOptions,
-          rowId: edit.id,
-          updatedCellData: null,
-        });
-      });
-
-    const __deletedIds = geomEdits
-      .filter(({ type }) => type === "delete")
-      .map(({ id }) => id);
-
-    const updateOperations = geomEdits
-      .filter(({ type }) => type === "modify")
-      // remove update operations for features that have been deleted
-      .filter((edit) => !__deletedIds.includes(edit.id))
-      .map((edit) => {
-        return updateDatasourceRow({
-          ...sharedOptions,
-          rowId: edit.id,
-          updatedCellData: edit.modifiedFeature.geometry,
-        });
-      });
-
-    const results = await Promise.allSettled([
-      ...updateOperations,
-      ...deletionOperations,
-    ]);
+    const results = await Promise.allSettled(requests);
 
     await mutateDatasourceRows();
 
