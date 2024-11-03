@@ -48,7 +48,7 @@ function SVGPreview({ geom }: { geom: DatasourceGeomCellType }) {
           .attr("fill", color)
           .attr("fill-opacity", "0.1")
           .attr("stroke", color)
-          .style("stroke-width", "1px");
+          .style("stroke-width", "1.5px");
       };
 
       const handleLines = ({ geometry }: { geometry: Geometry }) => {

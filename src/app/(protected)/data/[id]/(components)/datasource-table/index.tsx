@@ -1,7 +1,3 @@
-import "ag-grid-community/styles/ag-grid.css"; // Core grid CSS, always needed
-import "ag-grid-community/styles/ag-theme-alpine.css"; // Optional theme CSS
-import "./grid-style-overrides.css";
-
 import { Group, Stack, Text, TextInput, UnstyledButton } from "@mantine/core";
 import useDatasource from "@shared/hooks/swr/datasources/use-datasource";
 import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasource-columns";
@@ -58,7 +54,7 @@ export function DatasourceTable() {
   const params = useSearchParams();
 
   const [currentPage, setCurrentPage] = useState<number | "">(
-    Number(params.get("page") ?? 1),
+    Number(params.get("page") ?? 1)
   );
 
   const [validatedCurrentPage, setValidatedCurrentPage] = useState<number>(1);

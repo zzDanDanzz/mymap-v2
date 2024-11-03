@@ -1,5 +1,9 @@
 "use client";
 
+import "ag-grid-community/styles/ag-grid.css"; // Core grid CSS, always needed
+import "ag-grid-community/styles/ag-theme-alpine.css"; // Optional theme CSS
+import "./grid-style-overrides.css";
+
 import { Anchor, Breadcrumbs, Stack, Text, em } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import useDatasource from "@shared/hooks/swr/datasources/use-datasource";
