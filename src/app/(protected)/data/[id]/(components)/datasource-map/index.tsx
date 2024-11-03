@@ -3,26 +3,33 @@
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 
-import { Box, Flex, Paper, Select } from "@mantine/core";
+import {
+  Box,
+  Checkbox,
+  Flex,
+  Paper,
+  Stack,
+  Tooltip,
+  Text,
+} from "@mantine/core";
 import { useResizeObserver } from "@mantine/hooks";
 import urls from "@shared/api/urls";
 import { GEOMETRY_DATA_TYPES } from "@shared/constants/datasource.constants";
 import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasource-columns";
 import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-rows";
+import { DatasourceGeomCellType } from "@shared/types/datasource.types";
 import { getUserXApiKey } from "@shared/utils/local-storage";
 import { feature, featureCollection } from "@turf/helpers";
-import GeoJSON, { Geometry, GeometryCollection } from "geojson";
+import GeoJSON, { GeometryCollection } from "geojson";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import Map from "react-map-gl";
 import { addingGeomModeAtom, selectedRowIdsAtom } from "../../(utils)/atoms";
-import EditGeometry from "./(components)/edit-geometry";
+import AddGeometry from "./(components)/add-geometry";
 import FitMapBoundsToGeojsonData from "./(components)/fit-map-bounds-to-geojson-data";
 import ReadOnlyGeometryLayer from "./(components)/read-only-geometry-layer";
 import ResizeMapToContainer from "./(components)/resize-map-to-container";
-import AddGeometry from "./(components)/add-geometry";
-import { DatasourceGeomCellType } from "@shared/types/datasource.types";
 
 function DatasourceMap({ id }: { id: string }) {
   const { datasourceColumns } = useDatasourceColumns({ id });
@@ -44,51 +51,45 @@ function DatasourceMap({ id }: { id: string }) {
     [datasourceColumns]
   );
 
-  const [selectedGeomColumn, setSelectedGeomColumn] = useState<string>();
-
-  // get initial value for selectedGeomColumn
-  useEffect(() => {
-    if (!selectedGeomColumn && geometryColumns?.[0]?.name) {
-      setSelectedGeomColumn(geometryColumns[0].name);
-    }
-  }, [geometryColumns, selectedGeomColumn]);
+  const [activatedGeomColumnNames, setActivatedGeomColumnNames] = useState<
+    string[]
+  >([]);
 
   const geojsonData = useMemo(() => {
-    if (!selectedGeomColumn || !datasourceRows) {
+    if (activatedGeomColumnNames.length === 0 || !datasourceRows) {
       return null;
     }
 
     const geoms = datasourceRows
       .map((row) => {
-        type GeomArray = Geometry[];
+        const geoms: GeoJSON.Feature[] = [];
 
-        const geom = row[selectedGeomColumn] as
-          | DatasourceGeomCellType
-          | undefined;
+        activatedGeomColumnNames.forEach((geomColId) => {
+          const g = row[geomColId] as DatasourceGeomCellType | undefined;
 
-        if (!geom) return;
+          if (!g) return;
 
-        const isGeomCollection =
-          !Array.isArray(geom) && geom.type === "GeometryCollection";
-
-        if (isGeomCollection) {
-          return (geom as GeometryCollection).geometries.map((g) =>
-            feature(g, { id: row.id })
-          );
-        }
-
-        return feature(
-          geom as Exclude<DatasourceGeomCellType, GeomArray | undefined>,
-          {
-            id: row.id,
+          if (g.type === "GeometryCollection") {
+            (g as GeometryCollection).geometries.forEach((g) =>
+              geoms.push(feature(g, { id: row.id }))
+            );
+          } else {
+            geoms.push(
+              feature(
+                g as Exclude<DatasourceGeomCellType, GeometryCollection>,
+                {
+                  id: row.id,
+                }
+              )
+            );
           }
-        );
-      })
-      .filter(Boolean) as GeoJSON.Feature<any, GeoJSON.GeoJsonProperties>[];
+        });
 
-    // flaten because of GeometryCollection creating an array of arrays
+        return geoms;
+      })
+      .flat();
     return featureCollection(geoms.flat());
-  }, [datasourceRows, selectedGeomColumn]);
+  }, [activatedGeomColumnNames, datasourceRows]);
 
   const [isEditingGeom, setIsEditingGeom] = useState(false);
 
@@ -136,39 +137,45 @@ function DatasourceMap({ id }: { id: string }) {
         {(geometryColumns ?? []).length > 0 && (
           <Flex
             pos={"absolute"}
-            top={10}
-            left={10}
+            top={"10px"}
+            left={"10px"}
+            w={"calc(100% - 20px)"}
             align="flex-start"
             direction={"row-reverse"}
             gap={"md"}
           >
-            <Paper p={"sm"} withBorder>
-              <Select
-                size="xs"
-                label="نمایش ستون ژئومتری"
-                defaultValue={geometryColumns?.[0].name}
-                data={geometryColumns?.map(({ name }) => ({
-                  value: name,
-                  label: name,
-                }))}
-                onChange={(v) => {
-                  setSelectedGeomColumn(v ?? undefined);
-                }}
-              />
+            <Paper p={"sm"} withBorder w={"256px"} maw={"100%"} mah={"60%"}>
+              <Checkbox.Group
+                label="نمایش ستون(های) ژئومتری"
+                value={activatedGeomColumnNames}
+                onChange={setActivatedGeomColumnNames}
+              >
+                <Stack gap={"xs"} mt={"md"}>
+                  {geometryColumns?.map(({ name }) => (
+                    <Tooltip
+                      label={name}
+                      key={name}
+                      refProp="rootRef"
+                      position="top-start"
+                    >
+                      <Checkbox
+                        styles={{
+                          labelWrapper: {
+                            maxWidth: "100%",
+                          },
+                        }}
+                        value={name}
+                        label={
+                          <Text truncate maw={"100%"} size="xs">
+                            {name}
+                          </Text>
+                        }
+                      />
+                    </Tooltip>
+                  ))}
+                </Stack>
+              </Checkbox.Group>
             </Paper>
-
-            {geojsonData && !addingGeomMode.isEnabled && (
-              <Paper p={"sm"} withBorder>
-                <EditGeometry
-                  datasourceId={id}
-                  isEditingGeom={isEditingGeom}
-                  setIsEditingGeom={setIsEditingGeom}
-                  geojsonData={geojsonData}
-                  selectedGeomColumn={selectedGeomColumn}
-                  mutateDatasourceRows={datasourceRowsMutate}
-                />
-              </Paper>
-            )}
           </Flex>
         )}
 
