@@ -18,6 +18,8 @@ import ReadOnlyGeometryLayer from "./(components)/read-only-geometry-layer";
 import ResizeMapToContainer from "./(components)/resize-map-to-container";
 import { featureCollectionFromCellData } from "./(utils)";
 import LayerVisibilityToggle from "./(components)/layer-visibility-toggle";
+import EditGeometry from "./(components)/edit-geometry";
+import { EditableGeomCellInfo } from "./(utils)/types";
 
 function DatasourceMap({ id }: { id: string }) {
   const { datasourceColumns } = useDatasourceColumns({ id });
@@ -42,6 +44,9 @@ function DatasourceMap({ id }: { id: string }) {
   const [enabledGeomColmnNamesToView, setEnabledGeomColmnNamesToView] =
     useState<string[]>([]);
 
+  const [editableGeomCellInfo, setEditableGeomCellInfo] =
+    useState<EditableGeomCellInfo | null>(null);
+
   const geojson = useMemo(() => {
     if (enabledGeomColmnNamesToView.length === 0 || !datasourceRows) {
       return null;
@@ -52,14 +57,18 @@ function DatasourceMap({ id }: { id: string }) {
     });
   }, [enabledGeomColmnNamesToView, datasourceRows]);
 
-  const [isEditingGeom, setIsEditingGeom] = useState(false);
+  const editableGeojson = useMemo(() => {
+    if (!editableGeomCellInfo || !datasourceRows) {
+      return null;
+    }
+  }, [datasourceRows, editableGeomCellInfo]);
 
   // clear the selected row IDs when the user is no longer editing the geometry.
   useEffect(() => {
-    if (!isEditingGeom) {
+    if (!editableGeomCellInfo) {
       setSelectedRowIds([]);
     }
-  }, [isEditingGeom, setSelectedRowIds]);
+  }, [editableGeomCellInfo, setSelectedRowIds]);
 
   const [mapContainerRef, mapContainerRect] = useResizeObserver();
 
@@ -91,8 +100,16 @@ function DatasourceMap({ id }: { id: string }) {
 
         {geojson && <FitMapBoundsToGeojsonData geojson={geojson} />}
 
-        {geojson && !isEditingGeom && (
-          <ReadOnlyGeometryLayer geojson={geojson} />
+        {geojson && <ReadOnlyGeometryLayer geojson={geojson} />}
+
+        {editableGeomCellInfo && editableGeojson && (
+          <EditGeometry
+            geojson={editableGeojson}
+            datasourceId={id}
+            editableGeomCellInfo={editableGeomCellInfo}
+            mutateDatasourceRows={datasourceRowsMutate}
+            setEditableGeomCellInfo={setEditableGeomCellInfo}
+          />
         )}
 
         {(geometryColumns ?? []).length > 0 && (

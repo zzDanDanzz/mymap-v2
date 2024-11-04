@@ -5,3 +5,8 @@ export type GeomEdit = {
   type: "modify" | "delete";
   modifiedFeature: Feature<Geometry, GeoJsonProperties>;
 };
+
+export type EditableGeomCellInfo = {
+  rowId: string;
+  columnName: string;
+};

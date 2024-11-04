@@ -7,9 +7,9 @@ import { DatasourceRow } from "@shared/types/datasource.types";
 import notify from "@shared/utils/toasts";
 import { Feature, FeatureCollection } from "geojson";
 import { useSetAtom } from "jotai";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { KeyedMutator } from "swr";
-import { GeomEdit } from "../(utils)/types";
+import { EditableGeomCellInfo, GeomEdit } from "../(utils)/types";
 import MapboxGlDraw from "./mapbox-gl-draw";
 
 enum EditGeometryOperation {
@@ -92,18 +92,18 @@ function getRequestsForGeomEdits(
 }
 
 function EditGeometry({
-  isEditingGeom,
-  setIsEditingGeom,
-  geojsonData,
+  editableGeomCellInfo,
+  setEditableGeomCellInfo,
+  geojson,
   datasourceId,
-  selectedGeomColumn,
   mutateDatasourceRows,
 }: {
-  isEditingGeom: boolean;
-  setIsEditingGeom: React.Dispatch<React.SetStateAction<boolean>>;
-  geojsonData: FeatureCollection;
+  editableGeomCellInfo: EditableGeomCellInfo;
+  setEditableGeomCellInfo: React.Dispatch<
+    React.SetStateAction<EditableGeomCellInfo | null>
+  >;
+  geojson: FeatureCollection;
   datasourceId: string;
-  selectedGeomColumn: string | undefined;
   mutateDatasourceRows: KeyedMutator<ODataResponse<DatasourceRow>>;
 }) {
   const [geomEdits, setGeomEdits] = useState<GeomEdit[]>([]);
@@ -112,10 +112,10 @@ function EditGeometry({
 
   // reset geom edits when edit mode is turned off
   useEffect(() => {
-    if (!isEditingGeom) {
+    if (!editableGeomCellInfo) {
       setGeomEdits([]);
     }
-  }, [isEditingGeom]);
+  }, [editableGeomCellInfo]);
 
   // reset geom edits when the component unmounts
   useEffect(() => {
@@ -165,14 +165,12 @@ function EditGeometry({
   );
 
   const onSubmitDrawChanges = useCallback(async () => {
-    if (!selectedGeomColumn) return;
-
     setIsLoading(true);
 
     const requests = getRequestsForGeomEdits(
       geomEdits,
       datasourceId,
-      selectedGeomColumn
+      editableGeomCellInfo.columnName
     );
 
     const results = await Promise.allSettled(requests);
@@ -192,24 +190,24 @@ function EditGeometry({
       notify.success("تغییرات با موفقیت ثبت شد.");
     }
 
-    setIsEditingGeom(false);
+    setEditableGeomCellInfo(null);
     setIsLoading(false);
   }, [
     datasourceId,
+    editableGeomCellInfo.columnName,
     geomEdits,
     mutateDatasourceRows,
-    selectedGeomColumn,
-    setIsEditingGeom,
+    setEditableGeomCellInfo,
   ]);
 
   return (
     <>
-      {isEditingGeom && geojsonData && (
+      {editableGeomCellInfo && geojson && (
         <MapboxGlDraw
           controls={{
             trash: true,
           }}
-          geojsonData={geojsonData}
+          geojsonData={geojson}
           onUpdate={onUpdateFeatures}
           onDelete={onDeleteFeatures}
           onSelect={onSelectFeatures}
@@ -217,13 +215,9 @@ function EditGeometry({
         />
       )}
 
-      {!isEditingGeom && (
-        <Button onClick={() => setIsEditingGeom(true)}>ویرایش</Button>
-      )}
-
-      {isEditingGeom && (
+      {editableGeomCellInfo && (
         <Group>
-          <Button onClick={() => setIsEditingGeom(false)} variant="light">
+          <Button onClick={() => setEditableGeomCellInfo(null)} variant="light">
             لغو
           </Button>
           <Button
