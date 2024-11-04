@@ -4,23 +4,23 @@ import { useEffect } from "react";
 import { useMap } from "react-map-gl";
 
 function FitMapBoundsToGeojsonData({
-  geojsonData,
+  geojson,
 }: {
-  geojsonData: FeatureCollection;
+  geojson: FeatureCollection;
 }) {
   const { current: mapRef } = useMap();
 
   // zoom to bbox of fetched rows of selected geometry column
   useEffect(() => {
-    if (geojsonData && mapRef) {
+    if (geojson && mapRef) {
       try {
-        const bbox = getBbox(geojsonData) as [number, number, number, number];
+        const bbox = getBbox(geojson) as [number, number, number, number];
         bbox && mapRef.fitBounds(bbox, { padding: 200 });
       } catch (error) {
         console.error(error);
       }
     }
-  }, [geojsonData, mapRef]);
+  }, [geojson, mapRef]);
 
   return null;
 }

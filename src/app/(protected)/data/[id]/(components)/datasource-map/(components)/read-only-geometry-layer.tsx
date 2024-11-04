@@ -2,15 +2,11 @@ import { useMantineTheme } from "@mantine/core";
 import type { FeatureCollection } from "geojson";
 import { Layer, Source } from "react-map-gl";
 
-function ReadOnlyGeometryLayer({
-  geojsonData,
-}: {
-  geojsonData: FeatureCollection;
-}) {
+function ReadOnlyGeometryLayer({ geojson }: { geojson: FeatureCollection }) {
   const theme = useMantineTheme();
 
   return (
-    <Source data={geojsonData} type="geojson">
+    <Source data={geojson} type="geojson">
       <Layer
         type="circle"
         paint={{
