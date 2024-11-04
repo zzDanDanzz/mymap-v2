@@ -161,7 +161,7 @@ function DatasourceMap({ id }: { id: string }) {
                       <Checkbox
                         styles={{
                           labelWrapper: {
-                            maxWidth: "100%",
+                            overflowX: "hidden",
                           },
                         }}
                         value={name}

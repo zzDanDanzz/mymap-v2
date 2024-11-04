@@ -196,13 +196,13 @@ function CustomGridHeader(props: CustomHeaderProps) {
 
   return (
     <Group
-      style={{ flexGrow: 1 }}
+      style={{ flexGrow: 1, overflowX: "hidden" }}
       justify="space-between"
       gap={0}
       maw={"100%"}
       wrap="nowrap"
     >
-      <Stack gap={"xs"} align="flex-start" maw={"85%"}>
+      <Stack gap={"xs"} align="flex-start" style={{ overflowX: "hidden" }}>
         <Tooltip label={columnID}>
           <Text size="sm" fw={"bold"} truncate maw={"100%"}>
             {columnID}
