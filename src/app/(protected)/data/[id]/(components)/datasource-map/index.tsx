@@ -106,8 +106,8 @@ function DatasourceMap({ id }: { id: string }) {
           <EditGeometry
             geojson={editableGeojson}
             datasourceId={id}
-            editableGeomCellInfo={editableGeomCellInfo}
             mutateDatasourceRows={datasourceRowsMutate}
+            editableGeomCellInfo={editableGeomCellInfo}
             setEditableGeomCellInfo={setEditableGeomCellInfo}
           />
         )}
