@@ -1,7 +1,8 @@
 import { DatasourceColumn } from "@shared/types/datasource.types";
 import { atom } from "jotai";
+import { EditableGeomCellInfo } from "../(components)/datasource-map/(utils)/types";
 
-export const selectedRowIdsAtom = atom<string[]>([]);
+export const editableGeomCellInfoAtom = atom<EditableGeomCellInfo | null>(null);
 
 /**
  * tracks whether the user is in "Add mode" for adding new geometry to an empty cell.

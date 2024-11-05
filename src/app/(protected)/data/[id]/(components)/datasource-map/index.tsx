@@ -7,19 +7,26 @@ import { GEOMETRY_DATA_TYPES } from "@shared/constants/datasource.constants";
 import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasource-columns";
 import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-rows";
 import { getUserXApiKey } from "@shared/utils/local-storage";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import Map from "react-map-gl";
-import { addingGeomModeAtom, selectedRowIdsAtom } from "../../(utils)/atoms";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Map, { MapboxGeoJSONFeature } from "react-map-gl";
+import {
+  addingGeomModeAtom,
+  editableGeomCellInfoAtom,
+} from "../../(utils)/atoms";
 import AddGeometry from "./(components)/add-geometry";
+import EditGeometry from "./(components)/edit-geometry";
 import FitMapBoundsToGeojsonData from "./(components)/fit-map-bounds-to-geojson-data";
+import LayerVisibilityToggle from "./(components)/layer-visibility-toggle";
 import ReadOnlyGeometryLayer from "./(components)/read-only-geometry-layer";
 import ResizeMapToContainer from "./(components)/resize-map-to-container";
 import { featureCollectionFromCellData } from "./(utils)";
-import LayerVisibilityToggle from "./(components)/layer-visibility-toggle";
-import EditGeometry from "./(components)/edit-geometry";
-import { EditableGeomCellInfo } from "./(utils)/types";
+import {
+  EditableGeomCellInfo,
+  MapLayerFeatureProperties,
+} from "./(utils)/types";
+import { Geometry } from "geojson";
 
 function DatasourceMap({ id }: { id: string }) {
   const { datasourceColumns } = useDatasourceColumns({ id });
@@ -30,8 +37,6 @@ function DatasourceMap({ id }: { id: string }) {
     id,
     search: params.get("search") ?? "",
   });
-
-  const setSelectedRowIds = useSetAtom(selectedRowIdsAtom);
 
   const geometryColumns = useMemo(
     () =>
@@ -45,7 +50,7 @@ function DatasourceMap({ id }: { id: string }) {
     useState<string[]>([]);
 
   const [editableGeomCellInfo, setEditableGeomCellInfo] =
-    useState<EditableGeomCellInfo | null>(null);
+    useAtom<EditableGeomCellInfo | null>(editableGeomCellInfoAtom);
 
   const geojson = useMemo(() => {
     if (enabledGeomColmnNamesToView.length === 0 || !datasourceRows) {
@@ -62,13 +67,6 @@ function DatasourceMap({ id }: { id: string }) {
       return null;
     }
   }, [datasourceRows, editableGeomCellInfo]);
-
-  // clear the selected row IDs when the user is no longer editing the geometry.
-  useEffect(() => {
-    if (!editableGeomCellInfo) {
-      setSelectedRowIds([]);
-    }
-  }, [editableGeomCellInfo, setSelectedRowIds]);
 
   const [mapContainerRef, mapContainerRect] = useResizeObserver();
 
@@ -95,6 +93,26 @@ function DatasourceMap({ id }: { id: string }) {
           fontFamily: "IRANSansWeb",
         }}
         id="map"
+        interactiveLayerIds={["points"]}
+        onClick={(e) => {
+          const feature = e.features?.[0] as
+            | (MapboxGeoJSONFeature & {
+                properties: MapLayerFeatureProperties;
+              })
+            | undefined;
+
+          const { id: rowId, columnName } = feature?.properties || {};
+
+          if (!rowId || !columnName) {
+            setEditableGeomCellInfo(null);
+            return;
+          }
+
+          setEditableGeomCellInfo({
+            rowId,
+            columnName,
+          });
+        }}
       >
         <ResizeMapToContainer containerObserverRect={mapContainerRect} />
 

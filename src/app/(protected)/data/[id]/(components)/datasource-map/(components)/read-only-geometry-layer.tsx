@@ -8,6 +8,7 @@ function ReadOnlyGeometryLayer({ geojson }: { geojson: FeatureCollection }) {
   return (
     <Source data={geojson} type="geojson">
       <Layer
+        id="points"
         type="circle"
         paint={{
           "circle-color": theme.colors[theme.primaryColor][4],

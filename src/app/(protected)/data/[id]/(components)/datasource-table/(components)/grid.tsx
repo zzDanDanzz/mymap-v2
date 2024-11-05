@@ -11,12 +11,12 @@ import { AgGridReact } from "ag-grid-react";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";
 
+import { updateDatasourceRow } from "@/data/[id]/(utils)/api";
+import { editableGeomCellInfoAtom } from "@/data/[id]/(utils)/atoms";
 import { DatasourceRow } from "@shared/types/datasource.types";
+import { useAtomValue } from "jotai";
 import useColDefs from "../(hooks)/use-col-defs";
 import { syncGridColumnsOrderWithApi } from "../(utils)/api";
-import { updateDatasourceRow } from "@/data/[id]/(utils)/api";
-import { selectedRowIdsAtom } from "@/data/[id]/(utils)/atoms";
-import { useAtomValue } from "jotai";
 
 function Grid({
   rowData,
@@ -79,7 +79,7 @@ function Grid({
     [datasource, datasourceMutate]
   );
 
-  const selectedRowIds = useAtomValue(selectedRowIdsAtom);
+  const editableGeomCellInfo = useAtomValue(editableGeomCellInfoAtom);
 
   const gridRef = useRef<AgGridReact>(null);
 
@@ -89,22 +89,37 @@ function Grid({
 
     if (!api) return;
 
-    const nodesToSelect: IRowNode[] = [];
+    // const nodesToSelect: IRowNode[] = [];
 
     api.deselectAll();
 
-    api.forEachNode((node) => {
-      if (selectedRowIds.includes(node.data.id)) {
-        nodesToSelect.push(node);
-      }
-    });
+    if (!editableGeomCellInfo) return;
 
-    api.setNodesSelected({
-      nodes: nodesToSelect,
-      newValue: true,
-      source: "api",
+    // api.forEachNode((node) => {
+    //   if (editableGeomCellInfo.rowId === node.data.id) {
+    //     nodesToSelect.push(node);
+    //   }
+    // });
+
+    // api.setFocusedCell(
+    //   editableGeomCellInfo.rowId,
+    //   editableGeomCellInfo.columnName
+    // );
+
+    api.addCellRange({
+      columns: [editableGeomCellInfo.columnName],
+      rowStartIndex: editableGeomCellInfo.rowId,
+      rowEndIndex: editableGeomCellInfo.rowId,
     });
-  }, [selectedRowIds]);
+    // api.setNodesSelected({
+    //   nodes: nodesToSelect,
+    //   newValue: true,
+    //   source: "api",
+    // });
+
+    api.ensureColumnVisible(editableGeomCellInfo.columnName);
+    api.ensureNodeVisible(editableGeomCellInfo.rowId);
+  }, [editableGeomCellInfo, editableGeomCellInfo?.rowId]);
 
   return (
     <AgGridReact
@@ -119,13 +134,18 @@ function Grid({
       onColumnMoved={onColumnMovedOrPinned}
       onColumnPinned={onColumnMovedOrPinned}
       headerHeight={80}
-      rowSelection={{
-        mode: "multiRow",
-        enableClickSelection: false,
-        enableSelectionWithoutKeys: false,
-        checkboxes: false,
-        headerCheckbox: false,
-      }}
+      // rowSelection={{
+      //   mode: "multiRow",
+      //   enableClickSelection: false,
+      //   enableSelectionWithoutKeys: false,
+      //   checkboxes: false,
+      //   headerCheckbox: false,
+      // }}
+      // cellSelection={{
+      //   handle: {
+      //     mode: "range",
+      //   },
+      // }}
     />
   );
 }

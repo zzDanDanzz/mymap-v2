@@ -4,6 +4,7 @@ import {
 } from "@shared/types/datasource.types";
 import { feature, featureCollection } from "@turf/helpers";
 import { GeometryCollection } from "geojson";
+import { MapLayerFeatureProperties } from "./types";
 
 export const featureCollectionFromCellData = ({
   datasourceRows,
@@ -17,6 +18,11 @@ export const featureCollectionFromCellData = ({
       const __features: GeoJSON.Feature[] = [];
 
       for (const geomColName of enabledGeomColmnNamesToView) {
+        const properties: MapLayerFeatureProperties = {
+          id: row.id,
+          columnName: geomColName,
+        };
+
         const geomCellData = row[geomColName] as
           | DatasourceGeomCellType
           | undefined;
@@ -27,7 +33,7 @@ export const featureCollectionFromCellData = ({
           const geometries = (geomCellData as GeometryCollection).geometries;
 
           for (const g of geometries) {
-            __features.push(feature(g, { id: row.id }));
+            __features.push(feature(g, properties));
           }
           continue;
         }
@@ -35,9 +41,7 @@ export const featureCollectionFromCellData = ({
         __features.push(
           feature(
             geomCellData as Exclude<DatasourceGeomCellType, GeometryCollection>,
-            {
-              id: row.id,
-            }
+            properties
           )
         );
       }

@@ -7,6 +7,11 @@ export type GeomEdit = {
 };
 
 export type EditableGeomCellInfo = {
-  rowId: string;
+  rowId: number;
+  columnName: string;
+};
+
+export type MapLayerFeatureProperties = {
+  id: number;
   columnName: string;
 };

@@ -1,12 +1,10 @@
 import { updateDatasourceRow } from "@/data/[id]/(utils)/api";
-import { selectedRowIdsAtom } from "@/data/[id]/(utils)/atoms";
 import { Button, Group } from "@mantine/core";
 import { DrawDeleteEvent, DrawUpdateEvent } from "@mapbox/mapbox-gl-draw";
 import { ODataResponse } from "@shared/types/api.types";
 import { DatasourceRow } from "@shared/types/datasource.types";
 import notify from "@shared/utils/toasts";
 import { Feature, FeatureCollection } from "geojson";
-import { useSetAtom } from "jotai";
 import { useCallback, useEffect, useState } from "react";
 import { KeyedMutator } from "swr";
 import { EditableGeomCellInfo, GeomEdit } from "../(utils)/types";
@@ -108,7 +106,6 @@ function EditGeometry({
 }) {
   const [geomEdits, setGeomEdits] = useState<GeomEdit[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const setSelectedRowIdsAtom = useSetAtom(selectedRowIdsAtom);
 
   // reset geom edits when edit mode is turned off
   useEffect(() => {
@@ -135,34 +132,28 @@ function EditGeometry({
     setGeomEdits((prev) => [...prev, ...updated]);
   }, []);
 
-  const onDeleteFeatures = useCallback(
-    (e: DrawDeleteEvent) => {
-      const features = e.features;
+  const onDeleteFeatures = useCallback((e: DrawDeleteEvent) => {
+    const features = e.features;
 
-      const deleted = prepareFeaturesForGeomEdit(
-        EditGeometryOperation.DELETE,
-        features
-      );
-      // remove deleted features from selected row ids
-      setSelectedRowIdsAtom((prev) => {
-        const deletedIds = deleted.map((d) => d.id);
-        return prev.filter((id) => !deletedIds.includes(id));
-      });
+    const deleted = prepareFeaturesForGeomEdit(
+      EditGeometryOperation.DELETE,
+      features
+    );
+    // remove deleted features from selected row ids
+    // setSelectedRowIdsAtom((prev) => {
+    //   const deletedIds = deleted.map((d) => d.id);
+    //   return prev.filter((id) => !deletedIds.includes(id));
+    // });
 
-      setGeomEdits((prev) => [...prev, ...deleted]);
-    },
-    [setSelectedRowIdsAtom]
-  );
+    setGeomEdits((prev) => [...prev, ...deleted]);
+  }, []);
 
-  const onSelectFeatures = useCallback(
-    (e: DrawUpdateEvent) => {
-      const Ids = e.features
-        .map((f) => f.properties?.id)
-        .filter(Boolean) as string[];
-      setSelectedRowIdsAtom(Ids);
-    },
-    [setSelectedRowIdsAtom]
-  );
+  const onSelectFeatures = useCallback((e: DrawUpdateEvent) => {
+    // const Ids = e.features
+    //   .map((f) => f.properties?.id)
+    //   .filter(Boolean) as string[];
+    // setSelectedRowIdsAtom(Ids);
+  }, []);
 
   const onSubmitDrawChanges = useCallback(async () => {
     setIsLoading(true);
