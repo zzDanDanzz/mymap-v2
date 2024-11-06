@@ -12,7 +12,7 @@ function FitMapBoundsToGeojsonData({
 
   // zoom to bbox of fetched rows of selected geometry column
   useEffect(() => {
-    if (geojson && mapRef) {
+    if (geojson.features.length > 0 && mapRef) {
       try {
         const bbox = getBbox(geojson) as [number, number, number, number];
         bbox && mapRef.fitBounds(bbox, { padding: 200 });
