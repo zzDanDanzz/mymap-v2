@@ -1,15 +1,18 @@
 // @ts-ignore No type available
 import rewind from "@mapbox/geojson-rewind";
 
-import { addingGeomModeAtom } from "@/data/[id]/(utils)/atoms";
-import { Pill, useMantineTheme } from "@mantine/core";
+import {
+  addingGeomModeAtom,
+  editableGeomCellInfoAtom,
+} from "@/data/[id]/(utils)/atoms";
+import { Box, Paper, Pill, useMantineTheme } from "@mantine/core";
 import { DatasourceGeomCellType } from "@shared/types/datasource.types";
 import { feature, bbox as getBbox } from "@turf/turf";
 import { CustomCellRendererProps } from "ag-grid-react";
 import * as d3 from "d3";
 import { Feature, Geometry, GeometryCollection } from "geojson";
-import { useAtom } from "jotai";
-import { useEffect, useRef } from "react";
+import { useAtom, useAtomValue } from "jotai";
+import { PropsWithChildren, useEffect, useRef } from "react";
 import { useMap } from "react-map-gl";
 import EmptyCellWithAdd from "../empty-cell-with-add";
 
@@ -182,17 +185,46 @@ function EmptyCell(props: CustomCellRendererProps) {
   );
 }
 
+function Border({
+  visible,
+  children,
+}: PropsWithChildren<{ visible: boolean }>) {
+  const theme = useMantineTheme();
+
+  return (
+    <Paper
+      bd={
+        visible ? `1px solid ${theme.colors[theme.primaryColor][7]}` : undefined
+      }
+      bg={"transparent"}
+      pos={"absolute"}
+      inset={0}
+      h={"100%"}
+    >
+      {children}
+    </Paper>
+  );
+}
+
 function GeomSvgPreview(props: CustomCellRendererProps) {
   const geom = props.value;
+
+  const editableGeomCellInfo = useAtomValue(editableGeomCellInfoAtom);
 
   if (!geom || typeof geom !== "object") {
     return <EmptyCell {...props} />;
   }
 
+  const selected =
+    editableGeomCellInfo?.columnName === props.colDef?.field &&
+    editableGeomCellInfo?.rowId === props.data.id;
+
   return (
-    <FitboundsOnClickWrapper geom={geom}>
-      <SVGPreview geom={geom} />
-    </FitboundsOnClickWrapper>
+    <Border visible={selected}>
+      <FitboundsOnClickWrapper geom={geom}>
+        <SVGPreview geom={geom} />
+      </FitboundsOnClickWrapper>
+    </Border>
   );
 }
 

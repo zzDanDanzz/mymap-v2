@@ -83,39 +83,11 @@ function Grid({
 
   const gridRef = useRef<AgGridReact>(null);
 
-  // highlight selected rows in the grid based on selected geometry in map editing mode.
+  // scroll to cell when editing its geometry
   useEffect(() => {
     const api = gridRef.current?.api;
 
-    if (!api) return;
-
-    // const nodesToSelect: IRowNode[] = [];
-
-    api.deselectAll();
-
-    if (!editableGeomCellInfo) return;
-
-    // api.forEachNode((node) => {
-    //   if (editableGeomCellInfo.rowId === node.data.id) {
-    //     nodesToSelect.push(node);
-    //   }
-    // });
-
-    // api.setFocusedCell(
-    //   editableGeomCellInfo.rowId,
-    //   editableGeomCellInfo.columnName
-    // );
-
-    api.addCellRange({
-      columns: [editableGeomCellInfo.columnName],
-      rowStartIndex: editableGeomCellInfo.rowId,
-      rowEndIndex: editableGeomCellInfo.rowId,
-    });
-    // api.setNodesSelected({
-    //   nodes: nodesToSelect,
-    //   newValue: true,
-    //   source: "api",
-    // });
+    if (!api || !editableGeomCellInfo) return;
 
     api.ensureColumnVisible(editableGeomCellInfo.columnName);
     api.ensureNodeVisible(editableGeomCellInfo.rowId);
@@ -134,18 +106,6 @@ function Grid({
       onColumnMoved={onColumnMovedOrPinned}
       onColumnPinned={onColumnMovedOrPinned}
       headerHeight={80}
-      // rowSelection={{
-      //   mode: "multiRow",
-      //   enableClickSelection: false,
-      //   enableSelectionWithoutKeys: false,
-      //   checkboxes: false,
-      //   headerCheckbox: false,
-      // }}
-      // cellSelection={{
-      //   handle: {
-      //     mode: "range",
-      //   },
-      // }}
     />
   );
 }

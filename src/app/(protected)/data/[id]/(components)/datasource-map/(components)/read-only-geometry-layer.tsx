@@ -1,6 +1,7 @@
 import { useMantineTheme } from "@mantine/core";
 import type { FeatureCollection } from "geojson";
 import { Layer, Source } from "react-map-gl";
+import { INTERACTIVE_LAYERS } from "../(constants)";
 
 function ReadOnlyGeometryLayer({ geojson }: { geojson: FeatureCollection }) {
   const theme = useMantineTheme();
@@ -8,7 +9,7 @@ function ReadOnlyGeometryLayer({ geojson }: { geojson: FeatureCollection }) {
   return (
     <Source data={geojson} type="geojson">
       <Layer
-        id="points"
+        id={INTERACTIVE_LAYERS.CIRCLES}
         type="circle"
         paint={{
           "circle-color": theme.colors[theme.primaryColor][4],
@@ -19,6 +20,7 @@ function ReadOnlyGeometryLayer({ geojson }: { geojson: FeatureCollection }) {
         filter={["==", "$type", "Point"]}
       />
       <Layer
+        id={INTERACTIVE_LAYERS.FILLS}
         type="fill"
         paint={{
           "fill-color": theme.colors[theme.primaryColor][4],
@@ -28,6 +30,7 @@ function ReadOnlyGeometryLayer({ geojson }: { geojson: FeatureCollection }) {
         filter={["==", "$type", "Polygon"]}
       />
       <Layer
+        id={INTERACTIVE_LAYERS.LINES}
         type="line"
         paint={{
           "line-color": theme.colors[theme.primaryColor][7],
@@ -39,5 +42,4 @@ function ReadOnlyGeometryLayer({ geojson }: { geojson: FeatureCollection }) {
     </Source>
   );
 }
-
 export default ReadOnlyGeometryLayer;

@@ -7,9 +7,9 @@ import { GEOMETRY_DATA_TYPES } from "@shared/constants/datasource.constants";
 import { useDatasourceColumns } from "@shared/hooks/swr/datasources/use-datasource-columns";
 import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-rows";
 import { getUserXApiKey } from "@shared/utils/local-storage";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Map, { MapboxGeoJSONFeature } from "react-map-gl";
 import {
   addingGeomModeAtom,
@@ -26,7 +26,7 @@ import {
   EditableGeomCellInfo,
   MapLayerFeatureProperties,
 } from "./(utils)/types";
-import { Geometry } from "geojson";
+import { INTERACTIVE_LAYERS } from "./(constants)";
 
 function DatasourceMap({ id }: { id: string }) {
   const { datasourceColumns } = useDatasourceColumns({ id });
@@ -93,7 +93,11 @@ function DatasourceMap({ id }: { id: string }) {
           fontFamily: "IRANSansWeb",
         }}
         id="map"
-        interactiveLayerIds={["points"]}
+        interactiveLayerIds={[
+          INTERACTIVE_LAYERS.CIRCLES,
+          INTERACTIVE_LAYERS.FILLS,
+          INTERACTIVE_LAYERS.LINES,
+        ]}
         onClick={(e) => {
           const feature = e.features?.[0] as
             | (MapboxGeoJSONFeature & {
