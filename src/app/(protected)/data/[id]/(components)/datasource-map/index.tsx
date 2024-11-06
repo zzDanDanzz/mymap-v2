@@ -9,8 +9,8 @@ import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-
 import { getUserXApiKey } from "@shared/utils/local-storage";
 import { useAtom, useAtomValue } from "jotai";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
-import Map, { MapboxGeoJSONFeature } from "react-map-gl";
+import { useCallback, useMemo, useState } from "react";
+import Map, { MapLayerMouseEvent, MapboxGeoJSONFeature } from "react-map-gl";
 import {
   addingGeomModeAtom,
   editableGeomCellInfoAtom,
@@ -21,12 +21,12 @@ import FitMapBoundsToGeojsonData from "./(components)/fit-map-bounds-to-geojson-
 import LayerVisibilityToggle from "./(components)/layer-visibility-toggle";
 import ReadOnlyGeometryLayer from "./(components)/read-only-geometry-layer";
 import ResizeMapToContainer from "./(components)/resize-map-to-container";
+import { INTERACTIVE_LAYERS } from "./(constants)";
 import { featureCollectionFromCellData } from "./(utils)";
 import {
   EditableGeomCellInfo,
   MapLayerFeatureProperties,
 } from "./(utils)/types";
-import { INTERACTIVE_LAYERS } from "./(constants)";
 
 function DatasourceMap({ id }: { id: string }) {
   const { datasourceColumns } = useDatasourceColumns({ id });
@@ -53,24 +53,48 @@ function DatasourceMap({ id }: { id: string }) {
     useAtom<EditableGeomCellInfo | null>(editableGeomCellInfoAtom);
 
   const geojson = useMemo(() => {
-    if (enabledGeomColmnNamesToView.length === 0 || !datasourceRows) {
-      return null;
-    }
     return featureCollectionFromCellData({
-      datasourceRows,
-      enabledGeomColmnNamesToView,
+      datasourceRows: datasourceRows ?? [],
+      geometryColumnNames: enabledGeomColmnNamesToView,
+      cellToSkip: editableGeomCellInfo,
     });
-  }, [enabledGeomColmnNamesToView, datasourceRows]);
+  }, [enabledGeomColmnNamesToView, datasourceRows, editableGeomCellInfo]);
 
   const editableGeojson = useMemo(() => {
-    if (!editableGeomCellInfo || !datasourceRows) {
-      return null;
-    }
+    return featureCollectionFromCellData({
+      datasourceRows:
+        datasourceRows?.filter((r) => r.id === editableGeomCellInfo?.rowId) ??
+        [],
+      geometryColumnNames: [editableGeomCellInfo?.columnName ?? ""],
+      cellToSkip: null,
+    });
   }, [datasourceRows, editableGeomCellInfo]);
 
   const [mapContainerRef, mapContainerRect] = useResizeObserver();
 
   const addingGeomMode = useAtomValue(addingGeomModeAtom);
+
+  const onFeatureClick = useCallback(
+    (e: MapLayerMouseEvent) => {
+      if (editableGeomCellInfo) return;
+
+      const feature = e.features?.[0] as
+        | (MapboxGeoJSONFeature & {
+            properties: MapLayerFeatureProperties;
+          })
+        | undefined;
+
+      const { id: rowId, columnName } = feature?.properties || {};
+
+      if (!rowId || !columnName) return;
+
+      setEditableGeomCellInfo({
+        rowId,
+        columnName,
+      });
+    },
+    [editableGeomCellInfo, setEditableGeomCellInfo]
+  );
 
   return (
     <Box ref={mapContainerRef} h={"100%"}>
@@ -98,25 +122,7 @@ function DatasourceMap({ id }: { id: string }) {
           INTERACTIVE_LAYERS.FILLS,
           INTERACTIVE_LAYERS.LINES,
         ]}
-        onClick={(e) => {
-          const feature = e.features?.[0] as
-            | (MapboxGeoJSONFeature & {
-                properties: MapLayerFeatureProperties;
-              })
-            | undefined;
-
-          const { id: rowId, columnName } = feature?.properties || {};
-
-          if (!rowId || !columnName) {
-            setEditableGeomCellInfo(null);
-            return;
-          }
-
-          setEditableGeomCellInfo({
-            rowId,
-            columnName,
-          });
-        }}
+        onClick={onFeatureClick}
       >
         <ResizeMapToContainer containerObserverRect={mapContainerRect} />
 

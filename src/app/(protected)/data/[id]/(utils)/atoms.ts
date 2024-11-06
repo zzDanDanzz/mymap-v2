@@ -9,7 +9,7 @@ export const editableGeomCellInfoAtom = atom<EditableGeomCellInfo | null>(null);
  */
 export const addingGeomModeAtom = atom<{
   isEnabled: boolean;
-  rowId?: string;
+  rowId?: number;
   datasourceColumn?: DatasourceColumn;
 }>({
   isEnabled: false,

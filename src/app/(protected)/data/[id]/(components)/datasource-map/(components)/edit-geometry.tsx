@@ -9,6 +9,7 @@ import { useCallback, useEffect, useState } from "react";
 import { KeyedMutator } from "swr";
 import { EditableGeomCellInfo, GeomEdit } from "../(utils)/types";
 import MapboxGlDraw from "./mapbox-gl-draw";
+import GeometryActionAlert from "./geometry-action-alert";
 
 enum EditGeometryOperation {
   UPDATE = "update",
@@ -202,23 +203,18 @@ function EditGeometry({
           onUpdate={onUpdateFeatures}
           onDelete={onDeleteFeatures}
           onSelect={onSelectFeatures}
-          position="bottom-right"
+          position="top-right"
         />
       )}
 
-      {editableGeomCellInfo && (
-        <Group>
-          <Button onClick={() => setEditableGeomCellInfo(null)} variant="light">
-            لغو
-          </Button>
-          <Button
-            disabled={geomEdits.length === 0}
-            onClick={onSubmitDrawChanges}
-            loading={isLoading}
-          >
-            ثبت تغییرات
-          </Button>
-        </Group>
+      {editableGeomCellInfo.rowId && editableGeomCellInfo.columnName && (
+        <GeometryActionAlert
+          onCancel={() => setEditableGeomCellInfo(null)}
+          onSubmit={onSubmitDrawChanges}
+          action="edit"
+          rowId={editableGeomCellInfo.rowId}
+          columnName={editableGeomCellInfo.columnName}
+        />
       )}
     </>
   );

@@ -4,20 +4,28 @@ import {
 } from "@shared/types/datasource.types";
 import { feature, featureCollection } from "@turf/helpers";
 import { GeometryCollection } from "geojson";
-import { MapLayerFeatureProperties } from "./types";
+import { EditableGeomCellInfo, MapLayerFeatureProperties } from "./types";
 
 export const featureCollectionFromCellData = ({
   datasourceRows,
-  enabledGeomColmnNamesToView,
+  geometryColumnNames,
+  cellToSkip: cellToIgnore,
 }: {
   datasourceRows: DatasourceRow[];
-  enabledGeomColmnNamesToView: string[];
+  geometryColumnNames: string[];
+  cellToSkip: EditableGeomCellInfo | null;
 }) => {
   const features = datasourceRows
     .map((row) => {
       const __features: GeoJSON.Feature[] = [];
 
-      for (const geomColName of enabledGeomColmnNamesToView) {
+      for (const geomColName of geometryColumnNames) {
+        const skip =
+          cellToIgnore?.rowId === row.id &&
+          cellToIgnore?.columnName === geomColName;
+        if (skip) {
+          continue;
+        }
         const properties: MapLayerFeatureProperties = {
           id: row.id,
           columnName: geomColName,

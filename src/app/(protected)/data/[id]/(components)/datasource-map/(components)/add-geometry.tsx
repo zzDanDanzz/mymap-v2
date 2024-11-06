@@ -14,6 +14,7 @@ import MapboxGlDraw from "./mapbox-gl-draw";
 import { updateDatasourceRow } from "@/data/[id]/(utils)/api";
 import { ODataResponse } from "@shared/types/api.types";
 import { KeyedMutator } from "swr";
+import GeometryActionAlert from "./geometry-action-alert";
 
 const getControls = (dataType: GeomColDataType) => {
   const pointControls = { point: true };
@@ -163,28 +164,18 @@ function AddGeometry({
     setAddingGeomMode,
   ]);
 
+  const { rowId, datasourceColumn } = addingGeomMode;
   return (
     <>
-      <Flex pos={"absolute"} bottom={10} left={10} w={"calc(100% - 20px)"}>
-        <Paper p={"sm"} withBorder>
-          <Group wrap="nowrap">
-            <Alert title="افزودن ژئومتری" icon={<IconInfoCircle />}>
-              {"شما در حال افزودن ژئومتری در ردیفی با آیدی " +
-                addingGeomMode.rowId +
-                " در ستون " +
-                addingGeomMode.datasourceColumn?.name +
-                " هستید"}
-            </Alert>
-            <Stack>
-              <Button onClick={onSubmit}>ثبت</Button>
-              <Button onClick={onCancel} variant="light">
-                لغو
-              </Button>
-            </Stack>
-          </Group>
-        </Paper>
-      </Flex>
-
+      {rowId && datasourceColumn && (
+        <GeometryActionAlert
+          onCancel={onCancel}
+          onSubmit={onSubmit}
+          action="add"
+          rowId={rowId}
+          columnName={datasourceColumn.name}
+        />
+      )}
       <MapboxGlDraw
         controls={getControls(columnDataType)}
         onCreate={onCreate}

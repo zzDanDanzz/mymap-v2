@@ -9,7 +9,7 @@ export async function updateDatasourceRow({
   cellColumnName,
 }: {
   datasourceId: string;
-  rowId: string;
+  rowId: number;
   cellColumnName: string;
   updatedCellData: unknown;
 }) {
