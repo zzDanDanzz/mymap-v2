@@ -1,20 +1,15 @@
+import { updateDatasourceRow } from "@/data/[id]/(utils)/api";
 import { addingGeomModeAtom } from "@/data/[id]/(utils)/atoms";
-import { Alert, Button, Flex, Group, Paper, Stack } from "@mantine/core";
+import { ODataResponse } from "@shared/types/api.types";
 import { DatasourceRow, GeomColDataType } from "@shared/types/datasource.types";
-import { IconInfoCircle } from "@tabler/icons-react";
-import {
-  combine as createdCombinedFeatureCollection,
-  featureCollection as createFeatureCollection,
-  geometryCollection as createGeometryCollection,
-} from "@turf/turf";
-import { Feature, FeatureCollection } from "geojson";
+import { featureCollection as createFeatureCollection } from "@turf/turf";
+import { Feature } from "geojson";
 import { useAtom } from "jotai";
 import { useCallback, useMemo, useRef } from "react";
-import MapboxGlDraw from "./mapbox-gl-draw";
-import { updateDatasourceRow } from "@/data/[id]/(utils)/api";
-import { ODataResponse } from "@shared/types/api.types";
 import { KeyedMutator } from "swr";
 import GeometryActionAlert from "./geometry-action-alert";
+import MapboxGlDraw from "./mapbox-gl-draw";
+import { generateGeomCellDataFromFC } from "../(utils)/gl-draw";
 
 const getControls = (dataType: GeomColDataType) => {
   const pointControls = { point: true };
@@ -33,44 +28,6 @@ const getControls = (dataType: GeomColDataType) => {
     geometrycollection: allControls,
   };
   return map[dataType];
-};
-
-const generateGeomCellDataFromFC = ({
-  columnDataType,
-  featureCollection,
-}: {
-  columnDataType: GeomColDataType;
-  featureCollection: FeatureCollection<
-    GeoJSON.Point | GeoJSON.LineString | GeoJSON.Polygon
-  >;
-}): GeoJSON.Geometry | GeoJSON.GeometryCollection => {
-  /**
-   * assume column data type is multi(point|line|polygon)
-   * and mapbox-gl-draw has returned a feature collection of features of type=point|line|polygon respectively
-   * so turf must combine all into a single multi(point|line|polygon) feature respectively
-   * which is why we only need the first feature in the feature collection
-   */
-  if (columnDataType.includes("multi")) {
-    const combined = createdCombinedFeatureCollection(featureCollection);
-    console.log("🚀 ~ onSubmit ~ combined:", combined);
-
-    return combined.features[0].geometry;
-  }
-
-  /**
-   * assume column data type is geometrycollection
-   * else it's any of the singlar geom types = point|line|polygon|geometry
-   * and for the singular geom types, we don't allow more than one feature in the feature collection
-   */
-  if (columnDataType.includes("collection")) {
-    const geometries = featureCollection.features.map(
-      (feature) => feature.geometry
-    );
-    const geometryCollectionFeature = createGeometryCollection(geometries);
-    return geometryCollectionFeature.geometry;
-  } else {
-    return featureCollection.features[0].geometry;
-  }
 };
 
 const getFeatureCollectionFromGlDraw = (glDraw: MapboxDraw) => {

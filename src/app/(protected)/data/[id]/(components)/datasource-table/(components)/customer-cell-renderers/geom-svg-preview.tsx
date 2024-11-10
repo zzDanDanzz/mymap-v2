@@ -194,7 +194,7 @@ function Border({
   return (
     <Paper
       bd={
-        visible ? `1px solid ${theme.colors[theme.primaryColor][7]}` : undefined
+        visible ? `2px solid ${theme.colors[theme.primaryColor][6]}` : undefined
       }
       bg={"transparent"}
       pos={"absolute"}

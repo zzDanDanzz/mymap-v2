@@ -14,7 +14,7 @@ import {
   useMemo,
 } from "react";
 import { ControlPosition, MapInstance, useControl, useMap } from "react-map-gl";
-import getGlDrawStyles from "../(utils)/gl-draw-styles";
+import getGlDrawStyles from "../(utils)/gl-draw";
 
 type MapboxGlDrawProps = {
   geojsonData?: FeatureCollection;

@@ -21,5 +21,6 @@ export async function updateDatasourceRow({
     headers: getCommonHeaders(),
   };
 
-  await ax.patch(url, body, options);
+  const res = await ax.patch(url, body, options);
+  return { success: res.status >= 200 && res.status < 300 };
 }

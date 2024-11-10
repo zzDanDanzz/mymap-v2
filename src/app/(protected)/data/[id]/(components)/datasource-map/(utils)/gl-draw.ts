@@ -1,8 +1,67 @@
-// blatantly stolen:
-// https://github.com/mapbox/mapbox-gl-draw/blob/main/src/options.js
-// and
-// https://github.com/mapbox/mapbox-gl-draw/blob/main/src/lib/theme.js
+import {
+  combine as createdCombinedFeatureCollection,
+  geometryCollection as createGeometryCollection,
+} from "@turf/turf";
+import { FeatureCollection } from "geojson";
 
+type MultiGeometry =
+  | GeoJSON.MultiPoint
+  | GeoJSON.MultiLineString
+  | GeoJSON.MultiPolygon;
+
+type NonCollectionGeometry = Exclude<
+  GeoJSON.Geometry,
+  GeoJSON.GeometryCollection
+>;
+
+export const generateGeomCellDataFromFC = ({
+  columnDataType,
+  featureCollection,
+}: {
+  columnDataType: string;
+  featureCollection: FeatureCollection;
+}): GeoJSON.Geometry | GeoJSON.GeometryCollection => {
+  console.log({
+    columnDataType,
+    featureCollection,
+  });
+
+  /**
+   * assume column data type is multi(point|line|polygon)
+   * and mapbox-gl-draw has returned a feature collection of features of type=point|line|polygon respectively
+   * so turf must combine all into a single multi(point|line|polygon) feature respectively
+   * which is why we only need the first feature in the feature collection
+   */
+  if (columnDataType.includes("multi")) {
+    const combined = createdCombinedFeatureCollection(
+      featureCollection as FeatureCollection<MultiGeometry>
+    );
+    return combined.features[0].geometry;
+  }
+
+  /**
+   * assume column data type is geometrycollection
+   * else it's any of the singlar geom types = point|line|polygon|geometry
+   * and for the singular geom types, we don't allow more than one feature in the feature collection
+   */
+  if (columnDataType.includes("collection")) {
+    const geometries = featureCollection.features.map(
+      (feature) => feature.geometry
+    ) as NonCollectionGeometry[];
+
+    const geometryCollectionFeature = createGeometryCollection(geometries);
+    return geometryCollectionFeature.geometry;
+  } else {
+    return featureCollection.features[0].geometry;
+  }
+};
+
+/**
+ * blatantly stolen:
+ * https://github.com/mapbox/mapbox-gl-draw/blob/main/src/options.js
+ * and
+ * https://github.com/mapbox/mapbox-gl-draw/blob/main/src/lib/theme.js
+ */
 function getGlDrawStyles({
   fillColor,
   outlineColor,

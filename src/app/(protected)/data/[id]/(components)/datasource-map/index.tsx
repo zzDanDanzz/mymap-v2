@@ -22,11 +22,11 @@ import LayerVisibilityToggle from "./(components)/layer-visibility-toggle";
 import ReadOnlyGeometryLayer from "./(components)/read-only-geometry-layer";
 import ResizeMapToContainer from "./(components)/resize-map-to-container";
 import { INTERACTIVE_LAYERS } from "./(constants)";
-import { featureCollectionFromCellData } from "./(utils)";
 import {
-  EditableGeomCellInfo,
-  MapLayerFeatureProperties,
-} from "./(utils)/types";
+  featureCollectionFromCellData,
+  featureCollectionFromGeomColumns,
+} from "./(utils)";
+import { CellInfo } from "./(utils)/types";
 
 function DatasourceMap({ id }: { id: string }) {
   const { datasourceColumns } = useDatasourceColumns({ id });
@@ -46,26 +46,32 @@ function DatasourceMap({ id }: { id: string }) {
     [datasourceColumns]
   );
 
-  const [enabledGeomColmnNamesToView, setEnabledGeomColmnNamesToView] =
+  const [enabledGeomColumnNamesToView, setEnabledGeomColumnNamesToView] =
     useState<string[]>([]);
 
   const [editableGeomCellInfo, setEditableGeomCellInfo] =
-    useAtom<EditableGeomCellInfo | null>(editableGeomCellInfoAtom);
+    useAtom<CellInfo | null>(editableGeomCellInfoAtom);
 
-  const geojson = useMemo(() => {
-    return featureCollectionFromCellData({
-      datasourceRows: datasourceRows ?? [],
-      geometryColumnNames: enabledGeomColmnNamesToView,
+  const viewOnlyGeojson = useMemo(() => {
+    if (!datasourceRows) return null;
+
+    return featureCollectionFromGeomColumns({
+      datasourceRows,
+      geomColumnNames: enabledGeomColumnNamesToView,
       cellToSkip: editableGeomCellInfo,
     });
-  }, [enabledGeomColmnNamesToView, datasourceRows, editableGeomCellInfo]);
+  }, [datasourceRows, enabledGeomColumnNamesToView, editableGeomCellInfo]);
 
   const editableGeojson = useMemo(() => {
+    if (!editableGeomCellInfo || !datasourceRows) return null;
+
+    const rowWithEditableGeomCellInIt = datasourceRows.filter(
+      (r) => r.id === editableGeomCellInfo.rowId
+    );
+
     return featureCollectionFromCellData({
-      datasourceRows:
-        datasourceRows?.filter((r) => r.id === editableGeomCellInfo?.rowId) ??
-        [],
-      geometryColumnNames: [editableGeomCellInfo?.columnName ?? ""],
+      datasourceRows: rowWithEditableGeomCellInIt,
+      cells: [editableGeomCellInfo],
       cellToSkip: null,
     });
   }, [datasourceRows, editableGeomCellInfo]);
@@ -76,24 +82,30 @@ function DatasourceMap({ id }: { id: string }) {
 
   const onFeatureClick = useCallback(
     (e: MapLayerMouseEvent) => {
-      if (editableGeomCellInfo) return;
+      if (editableGeomCellInfo || !datasourceColumns) return;
 
-      const feature = e.features?.[0] as
-        | (MapboxGeoJSONFeature & {
-            properties: MapLayerFeatureProperties;
-          })
-        | undefined;
+      const feature = e.features?.[0];
 
-      const { id: rowId, columnName } = feature?.properties || {};
+      if (!feature?.properties) return;
 
-      if (!rowId || !columnName) return;
+      const { rowId, columnName } = feature.properties as Omit<
+        CellInfo,
+        "dataType"
+      >;
+
+      const dataType = datasourceColumns.find(
+        (c) => c.name === columnName
+      )?.data_type;
+
+      if (!dataType) return;
 
       setEditableGeomCellInfo({
         rowId,
         columnName,
+        dataType,
       });
     },
-    [editableGeomCellInfo, setEditableGeomCellInfo]
+    [datasourceColumns, editableGeomCellInfo, setEditableGeomCellInfo]
   );
 
   return (
@@ -126,9 +138,11 @@ function DatasourceMap({ id }: { id: string }) {
       >
         <ResizeMapToContainer containerObserverRect={mapContainerRect} />
 
-        {geojson && <FitMapBoundsToGeojsonData geojson={geojson} />}
+        <FitMapBoundsToGeojsonData
+          geojson={editableGeojson ?? viewOnlyGeojson}
+        />
 
-        {geojson && <ReadOnlyGeometryLayer geojson={geojson} />}
+        {viewOnlyGeojson && <ReadOnlyGeometryLayer geojson={viewOnlyGeojson} />}
 
         {editableGeomCellInfo && editableGeojson && (
           <EditGeometry
@@ -142,9 +156,9 @@ function DatasourceMap({ id }: { id: string }) {
 
         {(geometryColumns ?? []).length > 0 && (
           <LayerVisibilityToggle
-            enabledGeomColmnNamesToView={enabledGeomColmnNamesToView}
+            enabledGeomColmnNamesToView={enabledGeomColumnNamesToView}
             geometryColumns={geometryColumns ?? []}
-            setEnabledGeomColmnNamesToView={setEnabledGeomColmnNamesToView}
+            setEnabledGeomColmnNamesToView={setEnabledGeomColumnNamesToView}
           />
         )}
 

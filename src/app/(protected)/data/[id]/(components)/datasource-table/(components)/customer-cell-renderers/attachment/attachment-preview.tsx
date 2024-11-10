@@ -85,7 +85,7 @@ export default function AttachmentPreview(props: CustomCellRendererProps) {
 
     closeUploadModal();
 
-    updateDatasourceRow({
+    await updateDatasourceRow({
       datasourceId: id,
       rowId: props.data.id,
       cellColumnName: _columnField,

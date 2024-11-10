@@ -1,17 +1,14 @@
 import { updateDatasourceRow } from "@/data/[id]/(utils)/api";
 import { ODataResponse } from "@shared/types/api.types";
-import { DatasourceRow } from "@shared/types/datasource.types";
+import { DatasourceRow, GeomColDataType } from "@shared/types/datasource.types";
 import { FeatureCollection } from "geojson";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { KeyedMutator } from "swr";
-import { EditableGeomCellInfo, GeomEdit } from "../(utils)/types";
+import { CellInfo, GeomEdit } from "../(utils)/types";
 import GeometryActionAlert from "./geometry-action-alert";
 import MapboxGlDraw from "./mapbox-gl-draw";
-
-enum EditGeometryOperation {
-  UPDATE = "update",
-  DELETE = "delete",
-}
+import { generateGeomCellDataFromFC } from "../(utils)/gl-draw";
+import notify from "@shared/utils/toasts";
 
 function EditGeometry({
   editableGeomCellInfo,
@@ -20,9 +17,9 @@ function EditGeometry({
   datasourceId,
   mutateDatasourceRows,
 }: {
-  editableGeomCellInfo: EditableGeomCellInfo;
+  editableGeomCellInfo: CellInfo;
   setEditableGeomCellInfo: React.Dispatch<
-    React.SetStateAction<EditableGeomCellInfo | null>
+    React.SetStateAction<CellInfo | null>
   >;
   geojson: FeatureCollection;
   datasourceId: string;
@@ -56,42 +53,37 @@ function EditGeometry({
       return;
     }
 
-    await updateDatasourceRow({
+    const updatedCellData =
+      updatedFeatures.features.length === 0
+        ? null
+        : generateGeomCellDataFromFC({
+            columnDataType: editableGeomCellInfo.dataType,
+            featureCollection: updatedFeatures,
+          });
+
+    const { success } = await updateDatasourceRow({
       rowId: editableGeomCellInfo.rowId,
       datasourceId,
       cellColumnName: editableGeomCellInfo.columnName,
       updatedCellData,
     });
 
-    // const requests = getRequestsForGeomEdits(
-    //   geomEdits,
-    //   datasourceId,
-    //   editableGeomCellInfo.columnName
-    // );
+    await mutateDatasourceRows();
 
-    // const results = await Promise.allSettled(requests);
-
-    // await mutateDatasourceRows();
-
-    // const failedCount = results.filter(
-    //   (result) => result.status === "rejected"
-    // ).length;
-    // const totalCount = results.length;
-
-    // if (failedCount > 0) {
-    //   notify.error(
-    //     `متاسفانه ${failedCount} از ${totalCount} تغییرات شما ثبت نشد.`
-    //   );
-    // } else {
-    //   notify.success("تغییرات با موفقیت ثبت شد.");
-    // }
+    if (success) {
+      notify.success("تغییرات با موفقیت ثبت شد.");
+    } else {
+      notify.error("متاسفانه تغییرات شما ثبت نشد.");
+    }
 
     setEditableGeomCellInfo(null);
     setIsLoading(false);
   }, [
     datasourceId,
     editableGeomCellInfo.columnName,
+    editableGeomCellInfo.dataType,
     editableGeomCellInfo.rowId,
+    mutateDatasourceRows,
     setEditableGeomCellInfo,
   ]);
 

@@ -6,12 +6,8 @@ export type GeomEdit = {
   modifiedFeature: Feature<Geometry, GeoJsonProperties>;
 };
 
-export type EditableGeomCellInfo = {
+export type CellInfo = {
   rowId: number;
   columnName: string;
-};
-
-export type MapLayerFeatureProperties = {
-  id: number;
-  columnName: string;
+  dataType: string;
 };
