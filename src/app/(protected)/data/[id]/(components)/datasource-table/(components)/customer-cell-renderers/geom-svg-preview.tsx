@@ -4,15 +4,16 @@ import rewind from "@mapbox/geojson-rewind";
 import {
   addingGeomModeAtom,
   editableGeomCellInfoAtom,
+  enabledGeomColumnNamesToViewAtom,
 } from "@/data/[id]/(utils)/atoms";
-import { Box, Paper, Pill, useMantineTheme } from "@mantine/core";
+import { Paper, Pill, useMantineTheme } from "@mantine/core";
 import { DatasourceGeomCellType } from "@shared/types/datasource.types";
-import { feature, bbox as getBbox } from "@turf/turf";
+import { bbox as getBbox } from "@turf/turf";
 import { CustomCellRendererProps } from "ag-grid-react";
 import * as d3 from "d3";
-import { Feature, Geometry, GeometryCollection } from "geojson";
+import { Geometry } from "geojson";
 import { useAtom, useAtomValue } from "jotai";
-import { PropsWithChildren, useEffect, useRef } from "react";
+import { PropsWithChildren, useCallback, useEffect, useRef } from "react";
 import { useMap } from "react-map-gl";
 import EmptyCellWithAdd from "../empty-cell-with-add";
 
@@ -112,28 +113,53 @@ function SVGPreview({ geom }: { geom: DatasourceGeomCellType }) {
   return <svg ref={svgRef} />;
 }
 
-function FitboundsOnClickWrapper({
+function OnClickWrapper({
   children,
   geom,
+  columnName,
 }: {
   children: React.ReactNode;
+  columnName: string;
   geom: Geometry;
 }) {
   const { map } = useMap();
 
+  const [enabledGeomColumnNamesToView, setEnabledGeomColumnNamesToView] =
+    useAtom(enabledGeomColumnNamesToViewAtom);
+
+  const fitBounds = useCallback(() => {
+    if (!map) {
+      return;
+    }
+
+    try {
+      const bbox = getBbox(geom) as [number, number, number, number];
+      bbox && map.fitBounds(bbox, { speed: 1.5 });
+    } catch (error) {
+      console.error(error);
+    }
+  }, [geom, map]);
+
+  const enableGeomColumnVisibility = useCallback(() => {
+    const selectedGeomCellIsAlreadyEnabled =
+      enabledGeomColumnNamesToView.includes(columnName);
+
+    if (!selectedGeomCellIsAlreadyEnabled) {
+      setEnabledGeomColumnNamesToView((prev) => {
+        return [...prev, columnName];
+      });
+    }
+  }, [
+    columnName,
+    enabledGeomColumnNamesToView,
+    setEnabledGeomColumnNamesToView,
+  ]);
+
   return (
     <div
       onClick={() => {
-        if (!map) {
-          return;
-        }
-
-        try {
-          const bbox = getBbox(geom) as [number, number, number, number];
-          bbox && map.fitBounds(bbox, { speed: 1.5 });
-        } catch (error) {
-          console.error(error);
-        }
+        fitBounds();
+        enableGeomColumnVisibility();
       }}
     >
       {children}
@@ -221,11 +247,10 @@ function GeomSvgPreview(props: CustomCellRendererProps) {
 
   return (
     <Border visible={selected}>
-      <FitboundsOnClickWrapper geom={geom}>
+      <OnClickWrapper geom={geom} columnName={props.colDef?.field ?? ""}>
         <SVGPreview geom={geom} />
-      </FitboundsOnClickWrapper>
+      </OnClickWrapper>
     </Border>
   );
 }
-
 export default GeomSvgPreview;

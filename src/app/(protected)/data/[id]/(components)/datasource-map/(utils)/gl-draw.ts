@@ -1,3 +1,4 @@
+import { GeomColDataType } from "@shared/types/datasource.types";
 import {
   combine as createdCombinedFeatureCollection,
   geometryCollection as createGeometryCollection,
@@ -21,11 +22,6 @@ export const generateGeomCellDataFromFC = ({
   columnDataType: string;
   featureCollection: FeatureCollection;
 }): GeoJSON.Geometry | GeoJSON.GeometryCollection => {
-  console.log({
-    columnDataType,
-    featureCollection,
-  });
-
   /**
    * assume column data type is multi(point|line|polygon)
    * and mapbox-gl-draw has returned a feature collection of features of type=point|line|polygon respectively
@@ -183,3 +179,25 @@ function getGlDrawStyles({
 }
 
 export default getGlDrawStyles;
+
+export const getGlDrawControls = (dataType: GeomColDataType) => {
+  const pointControls = { point: true };
+  const lineControls = { line_string: true };
+  const polygonControls = { polygon: true };
+  const allControls = { ...pointControls, ...lineControls, ...polygonControls };
+
+  const map: Record<GeomColDataType, MapboxDraw.MapboxDrawControls> = {
+    point: pointControls,
+    multipoint: pointControls,
+    linestring: lineControls,
+    multilinestring: lineControls,
+    polygon: polygonControls,
+    multipolygon: polygonControls,
+    geometry: allControls,
+    geometrycollection: allControls,
+  };
+
+  const shared = { trash: true };
+
+  return { ...map[dataType], ...shared };
+};

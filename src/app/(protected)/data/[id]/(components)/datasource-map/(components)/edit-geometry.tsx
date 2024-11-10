@@ -7,7 +7,10 @@ import { KeyedMutator } from "swr";
 import { CellInfo, GeomEdit } from "../(utils)/types";
 import GeometryActionAlert from "./geometry-action-alert";
 import MapboxGlDraw from "./mapbox-gl-draw";
-import { generateGeomCellDataFromFC } from "../(utils)/gl-draw";
+import {
+  generateGeomCellDataFromFC,
+  getGlDrawControls,
+} from "../(utils)/gl-draw";
 import notify from "@shared/utils/toasts";
 
 function EditGeometry({
@@ -91,9 +94,9 @@ function EditGeometry({
     <>
       {editableGeomCellInfo && geojson && (
         <MapboxGlDraw
-          controls={{
-            trash: true,
-          }}
+          controls={getGlDrawControls(
+            (editableGeomCellInfo.dataType ?? "point") as GeomColDataType
+          )}
           geojsonData={geojson}
           position="top-right"
           ref={glDrawRef}

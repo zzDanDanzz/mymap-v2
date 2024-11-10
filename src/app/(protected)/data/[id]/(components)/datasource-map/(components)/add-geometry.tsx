@@ -9,28 +9,12 @@ import { useCallback, useMemo, useRef } from "react";
 import { KeyedMutator } from "swr";
 import GeometryActionAlert from "./geometry-action-alert";
 import MapboxGlDraw from "./mapbox-gl-draw";
-import { generateGeomCellDataFromFC } from "../(utils)/gl-draw";
+import {
+  generateGeomCellDataFromFC as generateGeomCellDataFromFc,
+  getGlDrawControls,
+} from "../(utils)/gl-draw";
 
-const getControls = (dataType: GeomColDataType) => {
-  const pointControls = { point: true };
-  const lineControls = { line_string: true };
-  const polygonControls = { polygon: true };
-  const allControls = { ...pointControls, ...lineControls, ...polygonControls };
-
-  const map: Record<GeomColDataType, MapboxDraw.MapboxDrawControls> = {
-    point: pointControls,
-    multipoint: pointControls,
-    linestring: lineControls,
-    multilinestring: lineControls,
-    polygon: polygonControls,
-    multipolygon: polygonControls,
-    geometry: allControls,
-    geometrycollection: allControls,
-  };
-  return map[dataType];
-};
-
-const getFeatureCollectionFromGlDraw = (glDraw: MapboxDraw) => {
+const extractFcFromGlDraw = (glDraw: MapboxDraw) => {
   const feats = (glDraw.getAll?.()?.features ?? []) as Feature<
     GeoJSON.Point | GeoJSON.LineString | GeoJSON.Polygon
   >[];
@@ -95,9 +79,13 @@ function AddGeometry({
       return;
     }
 
-    const featureCollection = getFeatureCollectionFromGlDraw(glDrawRef.current);
+    const featureCollection = extractFcFromGlDraw(glDrawRef.current);
 
-    const cellData = generateGeomCellDataFromFC({
+    if (featureCollection.features.length === 0) {
+      return;
+    }
+
+    const cellData = generateGeomCellDataFromFc({
       columnDataType,
       featureCollection,
     });
@@ -134,7 +122,7 @@ function AddGeometry({
         />
       )}
       <MapboxGlDraw
-        controls={getControls(columnDataType)}
+        controls={getGlDrawControls(columnDataType)}
         onCreate={onCreate}
         position="top-right"
         ref={glDrawRef}

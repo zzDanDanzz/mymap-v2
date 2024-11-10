@@ -21,8 +21,16 @@ function LayerVisibilityToggle({
       align="flex-start"
       direction={"row-reverse"}
       gap={"md"}
+      style={{ pointerEvents: "none" }}
     >
-      <Paper p={"sm"} withBorder w={"256px"} maw={"100%"} mah={"60%"}>
+      <Paper
+        p={"sm"}
+        withBorder
+        w={"256px"}
+        maw={"100%"}
+        mah={"60%"}
+        style={{ pointerEvents: "auto" }}
+      >
         <Checkbox.Group
           label="نمایش ستون(های) ژئومتری"
           value={enabledGeomColmnNamesToView}

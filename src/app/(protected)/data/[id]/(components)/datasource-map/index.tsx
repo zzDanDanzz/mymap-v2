@@ -9,11 +9,12 @@ import { useDatasourceRows } from "@shared/hooks/swr/datasources/use-datasource-
 import { getUserXApiKey } from "@shared/utils/local-storage";
 import { useAtom, useAtomValue } from "jotai";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Map, { MapLayerMouseEvent, MapboxGeoJSONFeature } from "react-map-gl";
 import {
   addingGeomModeAtom,
   editableGeomCellInfoAtom,
+  enabledGeomColumnNamesToViewAtom,
 } from "../../(utils)/atoms";
 import AddGeometry from "./(components)/add-geometry";
 import EditGeometry from "./(components)/edit-geometry";
@@ -47,10 +48,11 @@ function DatasourceMap({ id }: { id: string }) {
   );
 
   const [enabledGeomColumnNamesToView, setEnabledGeomColumnNamesToView] =
-    useState<string[]>([]);
+    useAtom(enabledGeomColumnNamesToViewAtom);
 
-  const [editableGeomCellInfo, setEditableGeomCellInfo] =
-    useAtom<CellInfo | null>(editableGeomCellInfoAtom);
+  const [editableGeomCellInfo, setEditableGeomCellInfo] = useAtom(
+    editableGeomCellInfoAtom
+  );
 
   const viewOnlyGeojson = useMemo(() => {
     if (!datasourceRows) return null;
